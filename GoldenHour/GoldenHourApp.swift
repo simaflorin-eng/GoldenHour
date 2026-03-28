@@ -4,24 +4,33 @@ import SwiftUI
 struct GoldenHourApp: App {
     @AppStorage("appTheme") private var appTheme: Int = 0
     @StateObject private var healthManager = HealthKitManager()
+    @State private var didRequestInitialPermissions = false
     
-    // Adăugăm scenePhase pentru a detecta când deschizi aplicația sau revii în ea
     @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
             MainTabView(healthManager: healthManager)
                 .preferredColorScheme(selectedColorScheme)
-                .task {
-                    // Se execută la prima deschidere a aplicației
-                    await healthManager.requestAuthorization()
-                }
-                // Refresh automat: detectăm când aplicația trece din fundal în prim-plan
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .active {
-                        healthManager.refresh()
+                        handleActiveScene()
                     }
                 }
+        }
+    }
+
+    private func handleActiveScene() {
+        if didRequestInitialPermissions {
+            healthManager.refresh()
+            return
+        }
+
+        didRequestInitialPermissions = true
+        NotificationManager.instance.requestAuthorization()
+
+        Task(priority: .userInitiated) {
+            await healthManager.requestAuthorization()
         }
     }
     

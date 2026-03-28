@@ -11,7 +11,7 @@ struct ContentView: View {
     @ObservedObject var locationManager: LocationManager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) var colorScheme
-    @AppStorage("appLanguage") private var appLanguage: String = "ro"
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     
     private let meshPoints: [SIMD2<Float>] = [
         SIMD2<Float>(0.0, 0.0), SIMD2<Float>(1.0, 0.0),
@@ -230,7 +230,7 @@ struct TimelineRow: View {
     let isNow: Bool
     let infoKey: String
     @State private var showInfo = false
-    @AppStorage("appLanguage") private var appLanguage: String = "ro"
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     var body: some View {
         HStack(spacing: 16) {
             ZStack { 

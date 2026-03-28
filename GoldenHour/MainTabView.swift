@@ -3,7 +3,8 @@ import SwiftUI
 struct MainTabView: View {
     @ObservedObject var healthManager: HealthKitManager
     @StateObject private var locationManager = LocationManager()
-    @AppStorage("appLanguage") private var appLanguage: String = "ro"
+    @State private var didConfigureManagers = false
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     
     var body: some View {
         TabView {
@@ -18,14 +19,11 @@ struct MainTabView: View {
                 }
         }
         .onAppear {
-            healthManager.locationManager = locationManager
+            guard !didConfigureManagers else { return }
+            didConfigureManagers = true
+
+            healthManager.connectLocationManager(locationManager)
             locationManager.requestLocation()
-            
-            Task {
-                await healthManager.requestAuthorization()
-                NotificationManager.instance.requestAuthorization()
-            }
         }
     }
 }
-

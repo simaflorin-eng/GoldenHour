@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("appLanguage") private var appLanguage: String = "ro"
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     @AppStorage("appTheme") private var appTheme: Int = 0
     @AppStorage("liveActivitiesEnabled") private var liveActivitiesEnabled: Bool = true
     @ObservedObject var healthManager: HealthKitManager
@@ -41,8 +41,8 @@ struct SettingsView: View {
                     .opacity(colorScheme == .dark ? 0.45 : 0.25)
 
                 List {
-                    Section(header: Text(GoldenHourTranslation.get("language", lang: appLanguage))) {
-                        Picker(GoldenHourTranslation.get("language", lang: appLanguage), selection: $appLanguage) {
+                    Section(header: Text(AppTranslation.get("language", lang: appLanguage))) {
+                        Picker(AppTranslation.get("language", lang: appLanguage), selection: $appLanguage) {
                             ForEach(AppLanguage.allCases) { lang in
                                 Text(lang.name).tag(lang.rawValue)
                             }
@@ -51,23 +51,23 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.primary.opacity(0.05))
                     
-                    Section(header: Text(GoldenHourTranslation.get("theme", lang: appLanguage))) {
-                        Picker(GoldenHourTranslation.get("theme", lang: appLanguage), selection: $appTheme) {
-                            Text(GoldenHourTranslation.get("theme_system", lang: appLanguage)).tag(0)
-                            Text(GoldenHourTranslation.get("theme_light", lang: appLanguage)).tag(1)
-                            Text(GoldenHourTranslation.get("theme_dark", lang: appLanguage)).tag(2)
+                    Section(header: Text(AppTranslation.get("theme", lang: appLanguage))) {
+                        Picker(AppTranslation.get("theme", lang: appLanguage), selection: $appTheme) {
+                            Text(AppTranslation.get("theme_system", lang: appLanguage)).tag(0)
+                            Text(AppTranslation.get("theme_light", lang: appLanguage)).tag(1)
+                            Text(AppTranslation.get("theme_dark", lang: appLanguage)).tag(2)
                         }
                         .pickerStyle(.segmented)
                     }
                     .listRowBackground(Color.primary.opacity(0.05))
                     
                     Section(
-                        header: Text(GoldenHourTranslation.get("live_activities_title", lang: appLanguage)),
-                        footer: Text(GoldenHourTranslation.get("live_activities_desc", lang: appLanguage))
+                        header: Text(AppTranslation.get("live_activities_title", lang: appLanguage)),
+                        footer: Text(AppTranslation.get("live_activities_desc", lang: appLanguage))
                     ) {
-                        Toggle(GoldenHourTranslation.get("live_activities_title", lang: appLanguage), isOn: $liveActivitiesEnabled)
+                        Toggle(AppTranslation.get("live_activities_title", lang: appLanguage), isOn: $liveActivitiesEnabled)
                             .tint(.orange)
-                            .onChange(of: liveActivitiesEnabled) { newValue in
+                            .onChange(of: liveActivitiesEnabled) { _, newValue in
                                 if newValue {
                                     healthManager.updateLiveActivity()
                                 } else {
@@ -77,20 +77,19 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.primary.opacity(0.05))
                     
-                    Section(header: Text(GoldenHourTranslation.get("about", lang: appLanguage))) {
+                    Section(header: Text(AppTranslation.get("about", lang: appLanguage))) {
                         NavigationLink(destination: AboutView(healthManager: healthManager)) {
                             HStack {
                                 Image(systemName: "info.circle.fill").foregroundColor(.blue)
-                                Text(GoldenHourTranslation.get("about", lang: appLanguage))
+                                Text(AppTranslation.get("about", lang: appLanguage))
                             }
                         }
                     }
                     .listRowBackground(Color.primary.opacity(0.05))
                 }
                 .scrollContentBackground(.hidden)
-                .navigationTitle(GoldenHourTranslation.get("settings", lang: appLanguage))
+                .navigationTitle(AppTranslation.get("settings", lang: appLanguage))
             }
         }
     }
 }
-

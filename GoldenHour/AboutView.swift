@@ -3,7 +3,7 @@ import SwiftUI
 struct AboutView: View {
     @ObservedObject var healthManager: HealthKitManager
     @Environment(\.colorScheme) var colorScheme
-    @AppStorage("appLanguage") private var appLanguage: String = "ro"
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
     @State private var showingHubermanDetails = false
     
     var body: some View {

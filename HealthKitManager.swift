@@ -6,17 +6,21 @@ import WidgetKit
 import ActivityKit
 #endif
 
+@MainActor
 class HealthKitManager: ObservableObject {
     private let healthStore = HKHealthStore()
     private let sharedDefaults = UserDefaults(suiteName: "group.com.florinsima.GoldenHour")
+    private let wakeUpRefreshKey = "lastWakeUpRefreshTimestamp"
+    private let liveActivitiesEnabledKey = "liveActivitiesEnabled"
     private var timer: AnyCancellable?
+    private var sunsetObserver: AnyCancellable?
     
     @Published var wakeUpTime: Date = Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date())!
     @Published var currentPhase: DayPhase = .morningPrep
     @Published var phases: [(phase: DayPhase, start: Date, end: Date)] = []
     @Published var isLoading: Bool = true
     
-    var locationManager: LocationManager?
+    private(set) var locationManager: LocationManager?
     
     // MARK: - Proprietăți UI
     
@@ -45,9 +49,26 @@ class HealthKitManager: ObservableObject {
     // MARK: - Refresh Logic
     
     func refresh() {
-        Task {
+        updatePhases()
+
+        guard shouldRefreshWakeUpTime() else { return }
+
+        Task(priority: .userInitiated) {
             await fetchWakeUpTime()
         }
+    }
+
+    func connectLocationManager(_ locationManager: LocationManager) {
+        guard self.locationManager !== locationManager else { return }
+
+        self.locationManager = locationManager
+        sunsetObserver = locationManager.$estimatedSunset
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updatePhases()
+            }
+
+        updatePhases()
     }
     
     // MARK: - Live Activity Management
@@ -56,7 +77,8 @@ class HealthKitManager: ObservableObject {
         #if canImport(ActivityKit)
         Task {
             for activity in Activity<GoldenHourAttributes>.activities {
-                await activity.end(dismissalPolicy: .immediate)
+                let content = ActivityContent(state: activity.content.state, staleDate: nil)
+                await activity.end(content, dismissalPolicy: .immediate)
             }
         }
         #endif
@@ -66,13 +88,14 @@ class HealthKitManager: ObservableObject {
         #if canImport(ActivityKit)
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         
-        let isEnabled = UserDefaults.standard.bool(forKey: "liveActivitiesEnabled")
+        let defaults = UserDefaults.standard
+        let isEnabled = defaults.object(forKey: liveActivitiesEnabledKey) as? Bool ?? true
         guard isEnabled else { 
             stopAllActivities()
             return 
         }
 
-        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "ro"
+        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
         let phase = currentPhase
         
         if phase == .idle {
@@ -182,30 +205,59 @@ class HealthKitManager: ObservableObject {
             Task { @MainActor in
                 self.wakeUpTime = wakeDate
                 self.sharedDefaults?.set(wakeDate.timeIntervalSince1970, forKey: "wakeUpTime")
+                self.sharedDefaults?.set(Date().timeIntervalSince1970, forKey: self.wakeUpRefreshKey)
                 self.updatePhases()
                 self.isLoading = false
             }
         }
         healthStore.execute(query)
     }
+
+    private func shouldRefreshWakeUpTime(now: Date = Date()) -> Bool {
+        guard let lastRefreshTimestamp = sharedDefaults?.object(forKey: wakeUpRefreshKey) as? Double else {
+            return true
+        }
+
+        let lastRefreshDate = Date(timeIntervalSince1970: lastRefreshTimestamp)
+        return wakeRefreshAnchor(for: lastRefreshDate) != wakeRefreshAnchor(for: now)
+    }
+
+    private func wakeRefreshAnchor(for date: Date) -> Date {
+        let calendar = Calendar.current
+
+        if let fourAMToday = calendar.date(bySettingHour: 4, minute: 0, second: 0, of: date) {
+            if date >= fourAMToday {
+                return fourAMToday
+            }
+
+            return calendar.date(byAdding: .day, value: -1, to: fourAMToday) ?? fourAMToday
+        }
+
+        return calendar.startOfDay(for: date)
+    }
     
     func updatePhases() {
         let wake = wakeUpTime
         let sunset = effectiveSunset
-        
-        let p1End = wake.addingTimeInterval(2 * 3600)
-        let p2End = wake.addingTimeInterval(6 * 3600)
-        let p3End = wake.addingTimeInterval(8.5 * 3600) 
-        
-        // Faza de Apus se termină la apusul efectiv (cu minim 30 minute alocate după limita de cafeină)
-        let p4End = max(sunset, p3End.addingTimeInterval(1800))
+
+        // Huberman: delay caffeine ~90-120 min after waking, then use a 90-minute
+        // ultradian work bout in the 2-4 hour post-waking window.
+        let morningPrepEnd = wake.addingTimeInterval(2 * 3600)
+        let focusEnd = morningPrepEnd.addingTimeInterval(90 * 60)
+
+        // With no bedtime input, approximate caffeine cutoff at 8h after waking.
+        // This roughly preserves an 8-hour buffer before a typical 16h wake day ends.
+        let caffeineCutoffEnd = wake.addingTimeInterval(8 * 3600)
+
+        // Sunset should still reserve at least a short evening wind-down window.
+        let sunsetEnd = max(sunset, caffeineCutoffEnd.addingTimeInterval(1800))
         
         self.phases = [
-            (.morningPrep, wake, p1End),
-            (.focus, p1End, p2End),
-            (.caffeine, p2End, p3End),
-            (.sunset, p3End, p4End),
-            (.idle, p4End, wake.addingTimeInterval(24 * 3600))
+            (.morningPrep, wake, morningPrepEnd),
+            (.focus, morningPrepEnd, focusEnd),
+            (.caffeine, focusEnd, caffeineCutoffEnd),
+            (.sunset, caffeineCutoffEnd, sunsetEnd),
+            (.idle, sunsetEnd, wake.addingTimeInterval(24 * 3600))
         ]
         
         let now = Date()
