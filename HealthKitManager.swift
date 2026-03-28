@@ -14,6 +14,7 @@ class HealthKitManager: ObservableObject {
     private let liveActivitiesEnabledKey = "liveActivitiesEnabled"
     private var timer: AnyCancellable?
     private var sunsetObserver: AnyCancellable?
+    private var phaseTransitionTask: Task<Void, Never>?
     
     @Published var wakeUpTime: Date = Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date())!
     @Published var currentPhase: DayPhase = .morningPrep
@@ -266,7 +267,22 @@ class HealthKitManager: ObservableObject {
         if self.currentPhase != newPhase {
             self.currentPhase = newPhase
         }
-        
+
+        schedulePhaseTransition()
         updateLiveActivity()
+    }
+
+    private func schedulePhaseTransition() {
+        phaseTransitionTask?.cancel()
+
+        let now = Date()
+        guard let nextTransition = phases.first(where: { $0.end > now })?.end else { return }
+
+        let delay = max(0, nextTransition.timeIntervalSince(now) + 0.1)
+        phaseTransitionTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
+            self?.updatePhases()
+        }
     }
 }
