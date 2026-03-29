@@ -36,12 +36,17 @@ class HealthKitManager: ObservableObject {
     
     var caffeineCutoffDate: Date { phases.first(where: { $0.phase == .caffeine })?.end ?? now }
     var caffeineCutoff: String { caffeineCutoffDate.formatted(date: .omitted, time: .shortened) }
+    var afternoonStart: Date { phases.first(where: { $0.phase == .afternoon })?.start ?? caffeineCutoffDate }
+    var afternoonEnd: Date { phases.first(where: { $0.phase == .afternoon })?.end ?? effectiveSunset }
+    var afternoonInterval: String {
+        "\(afternoonStart.formatted(date: .omitted, time: .shortened)) - \(afternoonEnd.formatted(date: .omitted, time: .shortened))"
+    }
     
     var effectiveSunset: Date {
         locationManager?.estimatedSunset ?? Calendar.current.date(bySettingHour: 18, minute: 0, second: 0, of: now)!
     }
     
-    var sunsetWalkEnd: Date { phases.first(where: { $0.phase == .sunset })?.end ?? effectiveSunset }
+    var sunsetWalkEnd: Date { effectiveSunset }
     
     var currentPhaseEndTime: Date {
         phases.first(where: { $0.phase == currentPhase })?.end ?? now
@@ -118,8 +123,11 @@ class HealthKitManager: ObservableObject {
         case .caffeine: 
             start = peakFocusEnd
             translationKey = "caffeine_cutoff"
+        case .afternoon:
+            start = afternoonStart
+            translationKey = "afternoon_reset"
         case .sunset: 
-            start = caffeineCutoffDate
+            start = phases.first(where: { $0.phase == .sunset })?.start ?? effectiveSunset
             translationKey = "sunset_walk"
         case .idle: 
             start = Date()
@@ -250,14 +258,16 @@ class HealthKitManager: ObservableObject {
         // This roughly preserves an 8-hour buffer before a typical 16h wake day ends.
         let caffeineCutoffEnd = wake.addingTimeInterval(8 * 3600)
 
-        // Sunset should still reserve at least a short evening wind-down window.
-        let sunsetEnd = max(sunset, caffeineCutoffEnd.addingTimeInterval(1800))
+        // The evening light pulse should happen close to sunset, not hours before or after.
+        let sunsetStart = max(caffeineCutoffEnd, sunset.addingTimeInterval(-30 * 60))
+        let sunsetEnd = max(sunsetStart, sunset)
         
         self.phases = [
             (.morningPrep, wake, morningPrepEnd),
             (.focus, morningPrepEnd, focusEnd),
             (.caffeine, focusEnd, caffeineCutoffEnd),
-            (.sunset, caffeineCutoffEnd, sunsetEnd),
+            (.afternoon, caffeineCutoffEnd, sunsetStart),
+            (.sunset, sunsetStart, sunsetEnd),
             (.idle, sunsetEnd, wake.addingTimeInterval(24 * 3600))
         ]
         

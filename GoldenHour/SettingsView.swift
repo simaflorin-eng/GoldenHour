@@ -21,6 +21,7 @@ struct SettingsView: View {
         case .morningPrep: base = .cyan
         case .focus: base = .orange
         case .caffeine: base = Color(hexRGB: phase.hexColor, fallback: .brown)
+        case .afternoon: base = Color(hexRGB: phase.hexColor, fallback: .green)
         case .sunset: base = .indigo
         case .idle: base = .purple
         }

@@ -58,9 +58,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         ut = ut.normalizingTo24()
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         guard let baseDate = calendar.date(from: components) else { return nil }
-        let sunsetInUTC = baseDate.addingTimeInterval(ut * 3600)
-        let secondsFromGMT = Double(TimeZone.current.secondsFromGMT(for: date))
-        return sunsetInUTC.addingTimeInterval(secondsFromGMT)
+        return baseDate.addingTimeInterval(ut * 3600)
     }
 }
 

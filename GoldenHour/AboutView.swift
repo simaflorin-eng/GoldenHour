@@ -41,6 +41,7 @@ struct AboutView: View {
                         aboutSection(title: "morning_prep_t", info: "morning_prep_d", icon: "sunrise.fill", color: .cyan)
                         aboutSection(title: "peak_focus_t", info: "peak_focus_d", icon: "brain.head.profile", color: .orange)
                         aboutSection(title: "caffeine_cutoff_t", info: "caffeine_cutoff_d", icon: "cup.and.saucer.fill", color: .brown)
+                        aboutSection(title: "afternoon_reset_t", info: "afternoon_reset_d", icon: "sun.max.trianglebadge.exclamationmark", color: .green)
                         aboutSection(title: "sunset_walk_t", info: "sunset_walk_d", icon: "sunset.fill", color: .indigo)
                         aboutSection(title: "idle_phase_t", info: "idle_phase_d", icon: "moon.stars.fill", color: .purple)
                     }
@@ -166,6 +167,7 @@ struct AboutView: View {
             case .morningPrep: return .cyan
             case .focus: return .orange
             case .caffeine: return .brown
+            case .afternoon: return .green
             case .sunset: return .indigo
             case .idle: return .purple
             }

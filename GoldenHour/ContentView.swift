@@ -26,6 +26,7 @@ struct ContentView: View {
         case .morningPrep: base = .cyan
         case .focus: base = .orange
         case .caffeine: base = Color(hexRGB: phase.hexColor, fallback: .brown)
+        case .afternoon: base = Color(hexRGB: phase.hexColor, fallback: .green)
         case .sunset: base = .indigo
         case .idle: base = .purple
         }
@@ -91,6 +92,15 @@ struct ContentView: View {
                     )
                     Divider().background(Color.primary.opacity(0.06)).padding(.horizontal, 20)
                     TimelineRow(
+                        title: AppTranslation.get("afternoon_reset", lang: appLanguage),
+                        subtitle: healthManager.afternoonInterval,
+                        icon: DayPhase.afternoon.icon,
+                        color: Color(hexRGB: DayPhase.afternoon.hexColor, fallback: .green),
+                        isNow: healthManager.currentPhase == .afternoon,
+                        infoKey: "about_afternoon_info"
+                    )
+                    Divider().background(Color.primary.opacity(0.06)).padding(.horizontal, 20)
+                    TimelineRow(
                         title: AppTranslation.get("sunset_walk", lang: appLanguage),
                         subtitle: healthManager.sunsetWalkEnd.formatted(date: .omitted, time: .shortened),
                         icon: DayPhase.sunset.icon,
@@ -141,14 +151,15 @@ struct NeonProgressView: View {
             GeometryReader { geo in
                 let spacing: CGFloat = 6
                 let horizontalPadding: CGFloat = 40 
-                let usableWidth = geo.size.width - horizontalPadding - (3 * spacing)
+                let usableWidth = geo.size.width - horizontalPadding - (4 * spacing)
                 let thresholds = calculateThresholds()
                 
                 HStack(spacing: spacing) {
                     NeonSegment(phase: .morningPrep, color: .cyan, width: usableWidth * thresholds.pFocusStart, isActive: healthManager.currentPhase == .morningPrep, progress: calculateInternalProgress(for: .morningPrep))
                     NeonSegment(phase: .focus, color: .orange, width: usableWidth * (thresholds.pFocusEnd - thresholds.pFocusStart), isActive: healthManager.currentPhase == .focus, progress: calculateInternalProgress(for: .focus))
-                    NeonSegment(phase: .caffeine, color: Color(hexRGB: DayPhase.caffeine.hexColor, fallback: .brown), width: usableWidth * (thresholds.pCaffeineCutoff - thresholds.pFocusEnd), isActive: healthManager.currentPhase == .caffeine, progress: calculateInternalProgress(for: .caffeine))
-                    NeonSegment(phase: .sunset, color: .indigo, width: usableWidth * max(0, (1.0 - thresholds.pCaffeineCutoff)), isActive: healthManager.currentPhase == .sunset, progress: calculateInternalProgress(for: .sunset))
+                    NeonSegment(phase: .caffeine, color: Color(hexRGB: DayPhase.caffeine.hexColor, fallback: .brown), width: usableWidth * (thresholds.pCaffeineEnd - thresholds.pFocusEnd), isActive: healthManager.currentPhase == .caffeine, progress: calculateInternalProgress(for: .caffeine))
+                    NeonSegment(phase: .afternoon, color: Color(hexRGB: DayPhase.afternoon.hexColor, fallback: .green), width: usableWidth * (thresholds.pSunsetStart - thresholds.pCaffeineEnd), isActive: healthManager.currentPhase == .afternoon, progress: calculateInternalProgress(for: .afternoon))
+                    NeonSegment(phase: .sunset, color: .indigo, width: usableWidth * max(0, (1.0 - thresholds.pSunsetStart)), isActive: healthManager.currentPhase == .sunset, progress: calculateInternalProgress(for: .sunset))
                 }
                 .padding(.horizontal, 20)
             }
@@ -182,25 +193,28 @@ struct NeonProgressView: View {
         guard let p1 = healthManager.phases.first(where: { $0.phase == .morningPrep }),
               let p2 = healthManager.phases.first(where: { $0.phase == .focus }),
               let p3 = healthManager.phases.first(where: { $0.phase == .caffeine }),
-              let p4 = healthManager.phases.first(where: { $0.phase == .sunset }) else {
-            return BioThresholds(pFocusStart: 0, pFocusEnd: 0, pCaffeineCutoff: 0)
+              let p4 = healthManager.phases.first(where: { $0.phase == .afternoon }),
+              let p5 = healthManager.phases.first(where: { $0.phase == .sunset }) else {
+            return BioThresholds(pFocusStart: 0, pFocusEnd: 0, pCaffeineEnd: 0, pSunsetStart: 0)
         }
         
         let start = p1.start
-        let end = p4.end // Întregul grafic se termină unde se termină faza de Apus
+        let end = p5.end
         let total = max(1, end.timeIntervalSince(start))
         
         return BioThresholds(
             pFocusStart: max(0, min(1.0, p2.start.timeIntervalSince(start) / total)),
             pFocusEnd: max(0, min(1.0, p3.start.timeIntervalSince(start) / total)),
-            pCaffeineCutoff: max(0, min(1.0, p4.start.timeIntervalSince(start) / total))
+            pCaffeineEnd: max(0, min(1.0, p4.start.timeIntervalSince(start) / total)),
+            pSunsetStart: max(0, min(1.0, p5.start.timeIntervalSince(start) / total))
         )
     }
 
     struct BioThresholds {
         let pFocusStart: Double
         let pFocusEnd: Double
-        let pCaffeineCutoff: Double
+        let pCaffeineEnd: Double
+        let pSunsetStart: Double
     }
 }
 
