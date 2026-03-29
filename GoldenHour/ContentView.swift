@@ -5,6 +5,22 @@ import HealthKit
 import ActivityKit
 #endif
 
+enum DashboardChartStyle: String, CaseIterable, Identifiable {
+    case neon
+    case linear
+    case gauge
+
+    var id: String { rawValue }
+
+    var titleKey: String {
+        switch self {
+        case .neon: return "chart_style_neon"
+        case .linear: return "chart_style_linear"
+        case .gauge: return "chart_style_gauge"
+        }
+    }
+}
+
 @MainActor
 struct ContentView: View {
     @ObservedObject var healthManager: HealthKitManager
@@ -12,6 +28,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("appLanguage") private var appLanguage: String = "en"
+    @AppStorage("dashboardChartStyle") private var dashboardChartStyle: String = DashboardChartStyle.neon.rawValue
     
     private let meshPoints: [SIMD2<Float>] = [
         SIMD2<Float>(0.0, 0.0), SIMD2<Float>(1.0, 0.0),
@@ -19,8 +36,17 @@ struct ContentView: View {
     ]
 
     private var meshColors: [Color] {
+        if healthManager.currentPhase.usesCompletedDayBackground {
+            return [
+                Color(red: 0.2, green: 0.2, blue: 0.22),
+                Color(red: 0.14, green: 0.14, blue: 0.16),
+                Color(red: 0.1, green: 0.1, blue: 0.12),
+                .black
+            ]
+        }
+
         let intensity = colorScheme == .dark ? 0.9 : 0.6
-        let phase = healthManager.currentPhase
+        let phase = healthManager.currentPhase.visualFallback
         let base: Color
         switch phase {
         case .morningPrep: base = .cyan
@@ -50,13 +76,17 @@ struct ContentView: View {
         }
     }
 
+    private var selectedChartStyle: DashboardChartStyle {
+        DashboardChartStyle(rawValue: dashboardChartStyle) ?? .neon
+    }
+
     private var dashboardView: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
                 headerView
                 
                 VStack(spacing: 15) {
-                    NeonProgressView(healthManager: healthManager, locationManager: locationManager)
+                    progressView
                 }
                 .padding(.vertical, 25)
                 .background(.ultraThinMaterial.opacity(0.5))
@@ -108,15 +138,6 @@ struct ContentView: View {
                         isNow: healthManager.currentPhase == .sunset,
                         infoKey: "about_sunset_info"
                     )
-                    Divider().background(Color.primary.opacity(0.06)).padding(.horizontal, 20)
-                    TimelineRow(
-                        title: AppTranslation.get("idle_phase", lang: appLanguage),
-                        subtitle: AppTranslation.get("legend_idle", lang: appLanguage),
-                        icon: DayPhase.idle.icon,
-                        color: .purple,
-                        isNow: healthManager.currentPhase == .idle,
-                        infoKey: "about_idle_info"
-                    )
                 }
                 .background(.ultraThinMaterial)
                 .cornerRadius(40)
@@ -125,9 +146,21 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private var progressView: some View {
+        switch selectedChartStyle {
+        case .neon:
+            NeonProgressView(healthManager: healthManager, locationManager: locationManager)
+        case .linear:
+            LinearTimelineProgressView(healthManager: healthManager)
+        case .gauge:
+            PhaseGaugeView(healthManager: healthManager)
+        }
+    }
+
     private var headerView: some View {
-        VStack(spacing: 8) {
-            Text(AppTranslation.get("legend_\(healthManager.currentPhase.rawValue)", lang: appLanguage).uppercased())
+        return VStack(spacing: 8) {
+            Text(headerBadgeText)
                 .font(.system(size: 9, weight: .black))
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .background(Color.primary.opacity(0.08))
@@ -139,6 +172,14 @@ struct ContentView: View {
                 .foregroundColor(.primary.opacity(0.4))
         }
         .padding(.top, 20)
+    }
+
+    private var headerBadgeText: String {
+        if healthManager.currentPhase == .idle {
+            return AppTranslation.get("day_complete", lang: appLanguage).uppercased()
+        }
+
+        return AppTranslation.get("legend_\(healthManager.currentPhase.visualFallback.rawValue)", lang: appLanguage).uppercased()
     }
 }
 
@@ -215,6 +256,394 @@ struct NeonProgressView: View {
         let pFocusEnd: Double
         let pCaffeineEnd: Double
         let pSunsetStart: Double
+    }
+}
+
+struct LinearTimelineProgressView: View {
+    @ObservedObject var healthManager: HealthKitManager
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
+
+    var body: some View {
+        VStack(spacing: 16) {
+            GeometryReader { geo in
+                let metrics = timelineMetrics(width: geo.size.width)
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color.primary.opacity(0.05))
+
+                    Path { path in
+                        guard let first = metrics.points.first else { return }
+                        path.move(to: first)
+
+                        guard metrics.points.count > 1 else { return }
+                        for index in 1..<metrics.points.count {
+                            let previous = metrics.points[index - 1]
+                            let current = metrics.points[index]
+                            let midX = (previous.x + current.x) / 2
+                            let control1 = CGPoint(x: midX, y: previous.y)
+                            let control2 = CGPoint(x: midX, y: current.y)
+                            path.addCurve(to: current, control1: control1, control2: control2)
+                        }
+                    }
+                    .stroke(
+                        LinearGradient(
+                            colors: metrics.gradientColors,
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                    )
+
+                    Path { path in
+                        path.move(to: CGPoint(x: metrics.markerPoint.x, y: geo.size.height - 10))
+                        path.addLine(to: metrics.markerPoint)
+                    }
+                    .stroke(activeColor.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+
+                    Circle()
+                        .fill(activeColor)
+                        .frame(width: 12, height: 12)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                        .shadow(color: activeColor.opacity(0.35), radius: 8)
+                        .position(metrics.markerPoint)
+                }
+            }
+            .frame(height: 88)
+
+            HStack(alignment: .top) {
+                Text(activePhaseTitle)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if let countdownTarget {
+                    Text(countdownTarget, style: .timer)
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                } else {
+                    Text(phasesEndTime)
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                }
+            }
+
+            HStack {
+                Text(healthManager.wakeUpTime.formatted(date: .omitted, time: .shortened))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(phasesEndTime)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    private var activeColor: Color {
+        color(for: healthManager.currentPhase.visualFallback)
+    }
+
+    private var activePhaseTitle: String {
+        if healthManager.currentPhase == .idle {
+            return AppTranslation.get("day_complete", lang: appLanguage).uppercased()
+        }
+
+        return healthManager.currentPhase.visualFallback.rawValue.replacingOccurrences(of: "_", with: " ").uppercased()
+    }
+
+    private var phasesEndTime: String {
+        healthManager.phases
+            .filter { $0.phase.appearsInPrimaryCharts }
+            .last?
+            .end
+            .formatted(date: .omitted, time: .shortened) ?? ""
+    }
+
+    private var countdownTarget: Date? {
+        healthManager.currentPhase == .idle ? nil : healthManager.currentPhaseEndTime
+    }
+
+    private func timelineMetrics(width: CGFloat) -> (points: [CGPoint], markerPoint: CGPoint, gradientColors: [Color]) {
+        let phases = healthManager.phases
+            .filter { $0.phase.appearsInPrimaryCharts }
+        guard let start = phases.first?.start, let end = phases.last?.end else {
+            return ([], .zero, [activeColor, activeColor])
+        }
+
+        let total = max(1, end.timeIntervalSince(start))
+        let height: CGFloat = 88
+        let baseline = height * 0.72
+        let amplitudes: [DayPhase: CGFloat] = [
+            .morningPrep: height * 0.24,
+            .focus: height * 0.54,
+            .caffeine: height * 0.32,
+            .afternoon: height * 0.2,
+            .sunset: height * 0.14,
+            .idle: height * 0.08
+        ]
+
+        var points: [CGPoint] = []
+        var gradientColors: [Color] = []
+
+        for phase in phases {
+            let startRatio = CGFloat(max(0, min(1, phase.start.timeIntervalSince(start) / total)))
+            let endRatio = CGFloat(max(0, min(1, phase.end.timeIntervalSince(start) / total)))
+            let startX = width * startRatio
+            let endX = width * endRatio
+            let amplitude = amplitudes[phase.phase] ?? height * 0.16
+            let color = color(for: phase.phase)
+
+            if points.isEmpty {
+                points.append(CGPoint(x: startX, y: baseline))
+            }
+
+            let midX = (startX + endX) / 2
+            points.append(CGPoint(x: midX, y: baseline - amplitude))
+            points.append(CGPoint(x: endX, y: baseline))
+            gradientColors.append(color)
+        }
+
+        let markerRatio = CGFloat(max(0, min(1, Date().timeIntervalSince(start) / total)))
+        let markerX = width * markerRatio
+        let markerY = interpolatedY(at: markerX, from: points, defaultY: baseline)
+
+        if gradientColors.count == 1, let only = gradientColors.first {
+            gradientColors.append(only)
+        }
+
+        return (points, CGPoint(x: markerX, y: markerY), gradientColors)
+    }
+
+    private func interpolatedY(at x: CGFloat, from points: [CGPoint], defaultY: CGFloat) -> CGFloat {
+        guard points.count > 1 else { return defaultY }
+
+        for index in 0..<(points.count - 1) {
+            let a = points[index]
+            let b = points[index + 1]
+            guard x >= min(a.x, b.x), x <= max(a.x, b.x), a.x != b.x else { continue }
+            let progress = (x - a.x) / (b.x - a.x)
+            return a.y + ((b.y - a.y) * progress)
+        }
+
+        return points.last?.y ?? defaultY
+    }
+
+    private func color(for phase: DayPhase) -> Color {
+        Color(hexRGB: phase.hexColor, fallback: fallbackColor(for: phase))
+    }
+
+    private func fallbackColor(for phase: DayPhase) -> Color {
+        switch phase {
+        case .morningPrep: return .cyan
+        case .focus: return .orange
+        case .caffeine: return .brown
+        case .afternoon: return .green
+        case .sunset: return .indigo
+        case .idle: return .purple
+        }
+    }
+
+}
+
+struct PhaseGaugeView: View {
+    @ObservedObject var healthManager: HealthKitManager
+    @AppStorage("appLanguage") private var appLanguage: String = "en"
+
+    var body: some View {
+        VStack(spacing: 14) {
+            GeometryReader { geo in
+                let width = geo.size.width
+                let lineWidth = min(20, width * 0.08)
+                let radius = (width - lineWidth - 12) / 2
+                let center = CGPoint(x: geo.size.width / 2, y: geo.size.height - 18)
+                let metrics = gaugeMetrics()
+
+                ZStack {
+                    GaugeArc(startAngle: .degrees(-180), endAngle: .degrees(0))
+                        .stroke(Color.primary.opacity(0.08), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+
+                    ForEach(Array(metrics.segments.enumerated()), id: \.offset) { _, segment in
+                        GaugeArc(startAngle: segment.startAngle, endAngle: segment.endAngle)
+                            .stroke(segment.color.opacity(segment.phase == healthManager.currentPhase ? 0.98 : 0.5), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                            .shadow(color: segment.phase == healthManager.currentPhase ? segment.color.opacity(0.35) : .clear, radius: 8)
+                    }
+
+                    Path { path in
+                        path.move(to: center)
+                        path.addLine(to: point(on: radius - 8, angle: metrics.needleAngle, center: center))
+                    }
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white, activeColor.opacity(0.9)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+                    .shadow(color: activeColor.opacity(0.35), radius: 8)
+
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.white, activeColor.opacity(0.9)],
+                                center: .center,
+                                startRadius: 1,
+                                endRadius: lineWidth
+                            )
+                        )
+                        .frame(width: lineWidth * 0.82, height: lineWidth * 0.82)
+                        .position(center)
+                        .shadow(color: activeColor.opacity(0.4), radius: 10)
+                }
+            }
+            .frame(height: 138)
+
+            VStack(spacing: 6) {
+                Text(activePhaseTitle)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundStyle(.secondary)
+                    .tracking(1.4)
+
+                if let countdownTarget {
+                    Text(countdownTarget, style: .timer)
+                        .font(.system(size: 26, weight: .bold, design: .monospaced))
+                } else {
+                    Text(visiblePhasesEndTime)
+                        .font(.system(size: 26, weight: .bold, design: .monospaced))
+                }
+
+                Text(timeRangeLabel)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                gaugeEdgeLabel(
+                    title: healthManager.wakeUpTime.formatted(date: .omitted, time: .shortened),
+                    icon: "sunrise.fill"
+                )
+                Spacer()
+                gaugeEdgeLabel(
+                    title: visiblePhasesEndTime,
+                    icon: "moon.stars.fill"
+                )
+            }
+            .padding(.horizontal, 8)
+        }
+        .padding(.horizontal, 10)
+    }
+
+    private func gaugeMetrics() -> (segments: [GaugeSegment], needleAngle: Angle) {
+        let phases = healthManager.phases
+            .filter { $0.phase.appearsInPrimaryCharts }
+        guard let start = phases.first?.start, let end = phases.last?.end else {
+            return ([], .degrees(-180))
+        }
+
+        let total = max(1, end.timeIntervalSince(start))
+        let markerRatio = max(0, min(1, Date().timeIntervalSince(start) / total))
+        let segments = phases.map { phase in
+            let startRatio = max(0, min(1, phase.start.timeIntervalSince(start) / total))
+            let endRatio = max(0, min(1, phase.end.timeIntervalSince(start) / total))
+            return GaugeSegment(
+                phase: phase.phase,
+                startAngle: angle(for: startRatio),
+                endAngle: angle(for: endRatio),
+                color: Color(hexRGB: phase.phase.hexColor, fallback: fallbackColor(for: phase.phase))
+            )
+        }
+
+        return (segments, angle(for: markerRatio))
+    }
+
+    private var activeColor: Color {
+        let phase = healthManager.currentPhase.visualFallback
+        return Color(hexRGB: phase.hexColor, fallback: fallbackColor(for: phase))
+    }
+
+    private var activePhaseTitle: String {
+        if healthManager.currentPhase == .idle {
+            return AppTranslation.get("day_complete", lang: appLanguage).uppercased()
+        }
+
+        return healthManager.currentPhase.visualFallback.rawValue.replacingOccurrences(of: "_", with: " ").uppercased()
+    }
+
+    private var timeRangeLabel: String {
+        let targetPhase = healthManager.currentPhase.visualFallback
+        guard let phase = healthManager.phases.first(where: { $0.phase == targetPhase }) else {
+            return ""
+        }
+
+        return "\(phase.start.formatted(date: .omitted, time: .shortened)) - \(phase.end.formatted(date: .omitted, time: .shortened))"
+    }
+
+    private var visiblePhasesEndTime: String {
+        healthManager.phases
+            .filter { $0.phase.appearsInPrimaryCharts }
+            .last?
+            .end
+            .formatted(date: .omitted, time: .shortened) ?? ""
+    }
+
+    private var countdownTarget: Date? {
+        healthManager.currentPhase == .idle ? nil : healthManager.currentPhaseEndTime
+    }
+
+    private func angle(for ratio: Double) -> Angle {
+        .degrees(-180 + (180 * ratio))
+    }
+
+    private func point(on radius: CGFloat, angle: Angle, center: CGPoint) -> CGPoint {
+        CGPoint(
+            x: center.x + CGFloat(cos(angle.radians)) * radius,
+            y: center.y + CGFloat(sin(angle.radians)) * radius
+        )
+    }
+
+    private func fallbackColor(for phase: DayPhase) -> Color {
+        switch phase {
+        case .morningPrep: return .cyan
+        case .focus: return .orange
+        case .caffeine: return .brown
+        case .afternoon: return .green
+        case .sunset: return .indigo
+        case .idle: return .purple
+        }
+    }
+
+    private struct GaugeSegment {
+        let phase: DayPhase
+        let startAngle: Angle
+        let endAngle: Angle
+        let color: Color
+    }
+
+    @ViewBuilder
+    private func gaugeEdgeLabel(title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .bold))
+            Text(title)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+        }
+        .foregroundStyle(.secondary)
+    }
+}
+
+struct GaugeArc: Shape {
+    let startAngle: Angle
+    let endAngle: Angle
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addArc(
+            center: CGPoint(x: rect.midX, y: rect.maxY),
+            radius: min(rect.width, rect.height * 2) / 2,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            clockwise: false
+        )
+        return path
     }
 }
 

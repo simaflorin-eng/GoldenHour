@@ -30,4 +30,16 @@ enum DayPhase: String, CaseIterable {
         case .idle: return "#AF52DE"
         }
     }
+
+    var appearsInPrimaryCharts: Bool {
+        self != .idle
+    }
+
+    var visualFallback: DayPhase {
+        self == .idle ? .sunset : self
+    }
+
+    var usesCompletedDayBackground: Bool {
+        self == .idle
+    }
 }

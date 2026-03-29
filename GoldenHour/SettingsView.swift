@@ -4,6 +4,7 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage: String = "en"
     @AppStorage("appTheme") private var appTheme: Int = 0
     @AppStorage("liveActivitiesEnabled") private var liveActivitiesEnabled: Bool = true
+    @AppStorage("dashboardChartStyle") private var dashboardChartStyle: String = DashboardChartStyle.neon.rawValue
     @ObservedObject var healthManager: HealthKitManager
     @Environment(\.colorScheme) var colorScheme
     
@@ -13,8 +14,17 @@ struct SettingsView: View {
     ]
 
     private var meshColors: [Color] {
+        if healthManager.currentPhase.usesCompletedDayBackground {
+            return [
+                Color(red: 0.2, green: 0.2, blue: 0.22),
+                Color(red: 0.14, green: 0.14, blue: 0.16),
+                Color(red: 0.1, green: 0.1, blue: 0.12),
+                .black
+            ]
+        }
+
         let intensity = colorScheme == .dark ? 0.9 : 0.6
-        let phase = healthManager.currentPhase
+        let phase = healthManager.currentPhase.visualFallback
         let base: Color
         
         switch phase {
@@ -59,6 +69,16 @@ struct SettingsView: View {
                             Text(AppTranslation.get("theme_dark", lang: appLanguage)).tag(2)
                         }
                         .pickerStyle(.segmented)
+                    }
+                    .listRowBackground(Color.primary.opacity(0.05))
+
+                    Section(header: Text(AppTranslation.get("chart_style", lang: appLanguage))) {
+                        Picker(AppTranslation.get("chart_style", lang: appLanguage), selection: $dashboardChartStyle) {
+                            ForEach(DashboardChartStyle.allCases) { style in
+                                Text(AppTranslation.get(style.titleKey, lang: appLanguage)).tag(style.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
                     }
                     .listRowBackground(Color.primary.opacity(0.05))
                     

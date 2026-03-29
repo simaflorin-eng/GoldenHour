@@ -43,7 +43,6 @@ struct AboutView: View {
                         aboutSection(title: "caffeine_cutoff_t", info: "caffeine_cutoff_d", icon: "cup.and.saucer.fill", color: .brown)
                         aboutSection(title: "afternoon_reset_t", info: "afternoon_reset_d", icon: "sun.max.trianglebadge.exclamationmark", color: .green)
                         aboutSection(title: "sunset_walk_t", info: "sunset_walk_d", icon: "sunset.fill", color: .indigo)
-                        aboutSection(title: "idle_phase_t", info: "idle_phase_d", icon: "moon.stars.fill", color: .purple)
                     }
                     .padding(25)
                     .background(.ultraThinMaterial)
@@ -160,8 +159,31 @@ struct AboutView: View {
     }
     
     private var backgroundView: some View {
+        if healthManager.currentPhase.usesCompletedDayBackground {
+            return AnyView(
+                ZStack {
+                    MeshGradient(
+                        width: 2, height: 2,
+                        points: [[0, 0], [1, 0], [0, 1], [1, 1]],
+                        colors: [
+                            Color(red: 0.2, green: 0.2, blue: 0.22),
+                            Color(red: 0.14, green: 0.14, blue: 0.16),
+                            Color(red: 0.1, green: 0.1, blue: 0.12),
+                            .black
+                        ]
+                    )
+                    .ignoresSafeArea()
+                    .blur(radius: 60)
+
+                    Color.black
+                        .ignoresSafeArea()
+                        .opacity(colorScheme == .dark ? 0.42 : 0.18)
+                }
+            )
+        }
+
         let intensity = colorScheme == .dark ? 0.9 : 0.6
-        let phase = healthManager.currentPhase
+        let phase = healthManager.currentPhase.visualFallback
         let base: Color = {
             switch phase {
             case .morningPrep: return .cyan
@@ -173,19 +195,21 @@ struct AboutView: View {
             }
         }()
         
-        return ZStack {
-            MeshGradient(
-                width: 2, height: 2,
-                points: [[0, 0], [1, 0], [0, 1], [1, 1]],
-                colors: [base.opacity(intensity), base.opacity(intensity * 0.4), base.opacity(0.2), .black]
-            )
-            .ignoresSafeArea()
-            .blur(radius: 60)
-            
-            (colorScheme == .dark ? Color.black : Color.white)
+        return AnyView(
+            ZStack {
+                MeshGradient(
+                    width: 2, height: 2,
+                    points: [[0, 0], [1, 0], [0, 1], [1, 1]],
+                    colors: [base.opacity(intensity), base.opacity(intensity * 0.4), base.opacity(0.2), .black]
+                )
                 .ignoresSafeArea()
-                .opacity(colorScheme == .dark ? 0.45 : 0.15)
-        }
+                .blur(radius: 60)
+                
+                (colorScheme == .dark ? Color.black : Color.white)
+                    .ignoresSafeArea()
+                    .opacity(colorScheme == .dark ? 0.45 : 0.15)
+            }
+        )
     }
     
     private func aboutSection(title: String, info: String, icon: String, color: Color) -> some View {
