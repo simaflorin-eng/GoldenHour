@@ -26,18 +26,19 @@ class HealthKitManager: ObservableObject {
     // MARK: - Proprietăți UI
     
     var now: Date { Date() }
+    var morningPrepEnd: Date { wakeUpTime.addingTimeInterval(2 * 3600) }
     
-    var peakFocusStart: Date { phases.first(where: { $0.phase == .focus })?.start ?? now }
-    var peakFocusEnd: Date { phases.first(where: { $0.phase == .focus })?.end ?? now }
+    var peakFocusStart: Date { morningPrepEnd }
+    var peakFocusEnd: Date { peakFocusStart.addingTimeInterval(90 * 60) }
     
     var peakFocusInterval: String {
         "\(peakFocusStart.formatted(date: .omitted, time: .shortened)) - \(peakFocusEnd.formatted(date: .omitted, time: .shortened))"
     }
     
-    var caffeineCutoffDate: Date { phases.first(where: { $0.phase == .caffeine })?.end ?? now }
+    var caffeineCutoffDate: Date { wakeUpTime.addingTimeInterval(8 * 3600) }
     var caffeineCutoff: String { caffeineCutoffDate.formatted(date: .omitted, time: .shortened) }
-    var afternoonStart: Date { phases.first(where: { $0.phase == .afternoon })?.start ?? caffeineCutoffDate }
-    var afternoonEnd: Date { phases.first(where: { $0.phase == .afternoon })?.end ?? effectiveSunset }
+    var afternoonStart: Date { caffeineCutoffDate }
+    var afternoonEnd: Date { max(caffeineCutoffDate, effectiveSunset.addingTimeInterval(-30 * 60)) }
     var afternoonInterval: String {
         "\(afternoonStart.formatted(date: .omitted, time: .shortened)) - \(afternoonEnd.formatted(date: .omitted, time: .shortened))"
     }
@@ -251,15 +252,10 @@ class HealthKitManager: ObservableObject {
 
         // Huberman: delay caffeine ~90-120 min after waking, then use a 90-minute
         // ultradian work bout in the 2-4 hour post-waking window.
-        let morningPrepEnd = wake.addingTimeInterval(2 * 3600)
-        let focusEnd = morningPrepEnd.addingTimeInterval(90 * 60)
-
-        // With no bedtime input, approximate caffeine cutoff at 8h after waking.
-        // This roughly preserves an 8-hour buffer before a typical 16h wake day ends.
-        let caffeineCutoffEnd = wake.addingTimeInterval(8 * 3600)
-
-        // The evening light pulse should happen close to sunset, not hours before or after.
-        let sunsetStart = max(caffeineCutoffEnd, sunset.addingTimeInterval(-30 * 60))
+        let morningPrepEnd = self.morningPrepEnd
+        let focusEnd = self.peakFocusEnd
+        let caffeineCutoffEnd = self.caffeineCutoffDate
+        let sunsetStart = self.afternoonEnd
         let sunsetEnd = max(sunsetStart, sunset)
         
         self.phases = [

@@ -18,9 +18,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         let status = manager.authorizationStatus
         if status == .notDetermined {
             manager.requestWhenInUseAuthorization()
-        } else {
+        } else if status == .authorizedWhenInUse || status == .authorizedAlways {
             manager.startUpdatingLocation()
         }
+    }
+
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let status = manager.authorizationStatus
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+
+        manager.startUpdatingLocation()
     }
     
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -34,7 +41,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 
     func calculateSunset(lat: Double, lon: Double, date: Date) -> Date? {
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .gmt
         let dayOfYear = Double(calendar.ordinality(of: .day, in: .year, for: date) ?? 0)
         let lngHour = lon / 15.0
         let t = dayOfYear + ((18.0 - lngHour) / 24.0)
