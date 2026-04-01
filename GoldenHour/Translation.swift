@@ -7,6 +7,11 @@ struct AppTranslation {
             "dashboard": "Panou",
             "language": "Limbă",
             "theme": "Temă",
+            "app_icon": "Icon aplicație",
+            "app_icon_desc": "Sistem folosește iconul principal și lasă iOS să-i schimbe automat varianta light sau dark. Light și Dark forțează manual un icon fix.",
+            "app_icon_system": "Sistem",
+            "app_icon_light": "Light",
+            "app_icon_dark": "Dark",
             "chart_style": "Stil grafic",
             "chart_style_neon": "Neon",
             "chart_style_linear": "Liniar",
@@ -82,6 +87,11 @@ struct AppTranslation {
             "dashboard": "Dashboard",
             "language": "Language",
             "theme": "Theme",
+            "app_icon": "App Icon",
+            "app_icon_desc": "System uses the primary icon and lets iOS switch it between the light and dark variants automatically. Light and Dark force a fixed icon.",
+            "app_icon_system": "System",
+            "app_icon_light": "Light",
+            "app_icon_dark": "Dark",
             "chart_style": "Chart Style",
             "chart_style_neon": "Neon",
             "chart_style_linear": "Linear",
@@ -147,7 +157,7 @@ struct AppTranslation {
             "close": "Close"
         ],
         "fr": [
-            "settings": "Réglages", "dashboard": "Tableau de bord", "language": "Langue", "theme": "Thème", "chart_style": "Style du graphique", "chart_style_neon": "Néon", "chart_style_linear": "Linéaire", "chart_style_gauge": "Jauge", "theme_system": "Système", "theme_light": "Clair", "theme_dark": "Sombre", "live_activities_title": "Activités en direct", "live_activities_desc": "Affichage sur l'écran de verrouillage.", "day_complete": "Journée terminée", "about": "À propos", "now_label": "MAINTENANT", "wake_up_label": "Réveil", "morning_prep": "Préparation", "peak_focus": "Concentration", "caffeine_cutoff": "Limite caféine", "afternoon_reset": "Réinitialisation de l'après-midi", "sunset_walk": "Coucher de soleil", "idle_phase": "Repos", "legend_morning_prep": "Énergie & Lumière", "legend_focus": "Travail profond", "legend_caffeine": "Sommeil prêt", "legend_afternoon": "Énergie stable", "legend_sunset": "Détente visuelle", "legend_idle": "Récupération",
+            "settings": "Réglages", "dashboard": "Tableau de bord", "language": "Langue", "theme": "Thème", "app_icon": "Icône de l’app", "app_icon_desc": "Système utilise l’icône principale et laisse iOS basculer automatiquement entre ses variantes claire et sombre. Clair et Sombre forcent une icône fixe.", "app_icon_system": "Système", "app_icon_light": "Clair", "app_icon_dark": "Sombre", "chart_style": "Style du graphique", "chart_style_neon": "Néon", "chart_style_linear": "Linéaire", "chart_style_gauge": "Jauge", "theme_system": "Système", "theme_light": "Clair", "theme_dark": "Sombre", "live_activities_title": "Activités en direct", "live_activities_desc": "Affichage sur l'écran de verrouillage.", "day_complete": "Journée terminée", "about": "À propos", "now_label": "MAINTENANT", "wake_up_label": "Réveil", "morning_prep": "Préparation", "peak_focus": "Concentration", "caffeine_cutoff": "Limite caféine", "afternoon_reset": "Réinitialisation de l'après-midi", "sunset_walk": "Coucher de soleil", "idle_phase": "Repos", "legend_morning_prep": "Énergie & Lumière", "legend_focus": "Travail profond", "legend_caffeine": "Sommeil prêt", "legend_afternoon": "Énergie stable", "legend_sunset": "Détente visuelle", "legend_idle": "Récupération",
             "about_morning_prep_info": "Les 2 premières heures après le réveil sont critiques pour régler votre rythme. La lumière naturelle bloque la mélatonine.",
             "about_focus_info": "Le cortisol est au maximum. Utilisez ce créneau pour vos tâches les plus exigeantes nécessitant une attention maximale.",
             "about_caffeine_info": "L'adénosine commence à s'accumuler. Arrêtez la caféine maintenant pour permettre au foie de la traiter avant le coucher.",
@@ -172,7 +182,7 @@ struct AppTranslation {
             "close": "Fermer"
         ],
         "de": [
-            "settings": "Einstellungen", "dashboard": "Dashboard", "language": "Sprache", "theme": "Thema", "chart_style": "Diagrammstil", "chart_style_neon": "Neon", "chart_style_linear": "Linear", "chart_style_gauge": "Tachometer", "theme_system": "System", "theme_light": "Hell", "theme_dark": "Dunkel", "live_activities_title": "Live-Aktivitäten", "live_activities_desc": "Fortschritt auf dem Sperrbildschirm.", "day_complete": "Tag abgeschlossen", "about": "Über uns", "now_label": "JETZT", "wake_up_label": "Aufwachzeit", "morning_prep": "Vorbereitung", "peak_focus": "Fokuszeit", "caffeine_cutoff": "Koffein-Limit", "afternoon_reset": "Nachmittags-Reset", "sunset_walk": "Abendspaziergang", "idle_phase": "Ruhephase", "legend_morning_prep": "Energie & Licht", "legend_focus": "Deep Work", "legend_caffeine": "Schlafbereit", "legend_afternoon": "Stabile Energie", "legend_sunset": "Visueller Ausklang", "legend_idle": "Erholung",
+            "settings": "Einstellungen", "dashboard": "Dashboard", "language": "Sprache", "theme": "Thema", "app_icon": "App-Symbol", "app_icon_desc": "System verwendet das primäre Symbol und lässt iOS automatisch zwischen heller und dunkler Variante wechseln. Hell und Dunkel erzwingen ein festes Symbol.", "app_icon_system": "System", "app_icon_light": "Hell", "app_icon_dark": "Dunkel", "chart_style": "Diagrammstil", "chart_style_neon": "Neon", "chart_style_linear": "Linear", "chart_style_gauge": "Tachometer", "theme_system": "System", "theme_light": "Hell", "theme_dark": "Dunkel", "live_activities_title": "Live-Aktivitäten", "live_activities_desc": "Fortschritt auf dem Sperrbildschirm.", "day_complete": "Tag abgeschlossen", "about": "Über uns", "now_label": "JETZT", "wake_up_label": "Aufwachzeit", "morning_prep": "Vorbereitung", "peak_focus": "Fokuszeit", "caffeine_cutoff": "Koffein-Limit", "afternoon_reset": "Nachmittags-Reset", "sunset_walk": "Abendspaziergang", "idle_phase": "Ruhephase", "legend_morning_prep": "Energie & Licht", "legend_focus": "Deep Work", "legend_caffeine": "Schlafbereit", "legend_afternoon": "Stabile Energie", "legend_sunset": "Visueller Ausklang", "legend_idle": "Erholung",
             "about_morning_prep_info": "Die ersten 2 Stunden nach dem Aufwachen sind entscheidend. Natürliches Licht blockiert Melatonin.",
             "about_focus_info": "Der Cortisolspiegel ist optimal. Nutzen Sie dieses Fenster für Aufgaben, die maximale Aufmerksamkeit erfordern.",
             "about_caffeine_info": "Adenosin baut sich auf. Stoppen Sie den Koffeinkonsum jetzt, damit die Leber ihn vor dem Schlafen abbauen kann.",
@@ -197,7 +207,7 @@ struct AppTranslation {
             "close": "Schließen"
         ],
         "es": [
-            "settings": "Ajustes", "dashboard": "Panel", "language": "Idioma", "theme": "Tema", "chart_style": "Estilo del gráfico", "chart_style_neon": "Neón", "chart_style_linear": "Lineal", "chart_style_gauge": "Medidor", "theme_system": "Sistema", "theme_light": "Claro", "theme_dark": "Oscuro", "live_activities_title": "Actividades en vivo", "live_activities_desc": "Muestra el progreso.", "day_complete": "Día completado", "about": "Acerca de", "now_label": "AHORA", "wake_up_label": "Sveglia", "morning_prep": "Preparación", "peak_focus": "Concentración", "caffeine_cutoff": "Límite de cafeína", "afternoon_reset": "Reinicio de la tarde", "sunset_walk": "Ocaso", "idle_phase": "Descanso", "legend_morning_prep": "Energía y Luz", "legend_focus": "Trabajo profundo", "legend_caffeine": "Listo para el sueño", "legend_afternoon": "Energía estable", "legend_sunset": "Relax visual", "legend_idle": "Recuperación",
+            "settings": "Ajustes", "dashboard": "Panel", "language": "Idioma", "theme": "Tema", "app_icon": "Icono de la app", "app_icon_desc": "Sistema usa el icono principal y deja que iOS cambie automáticamente entre sus variantes clara y oscura. Claro y Oscuro fuerzan un icono fijo.", "app_icon_system": "Sistema", "app_icon_light": "Claro", "app_icon_dark": "Oscuro", "chart_style": "Estilo del gráfico", "chart_style_neon": "Neón", "chart_style_linear": "Lineal", "chart_style_gauge": "Medidor", "theme_system": "Sistema", "theme_light": "Claro", "theme_dark": "Oscuro", "live_activities_title": "Actividades en vivo", "live_activities_desc": "Muestra el progreso.", "day_complete": "Día completado", "about": "Acerca de", "now_label": "AHORA", "wake_up_label": "Sveglia", "morning_prep": "Preparación", "peak_focus": "Concentración", "caffeine_cutoff": "Límite de cafeína", "afternoon_reset": "Reinicio de la tarde", "sunset_walk": "Ocaso", "idle_phase": "Descanso", "legend_morning_prep": "Energía y Luz", "legend_focus": "Trabajo profundo", "legend_caffeine": "Listo para el sueño", "legend_afternoon": "Energía estable", "legend_sunset": "Relax visual", "legend_idle": "Recuperación",
             "about_morning_prep_info": "Las 2 primeras horas son críticas. La luz solar bloquea la producción de melatonina.",
             "about_focus_info": "El cortisol está en niveles óptimos. Use esta ventana para tareas que requieran atención máxima.",
             "about_caffeine_info": "La adenosina se acumula. Deje la cafeína ahora para que el hígado la procese antes de dormir.",
@@ -222,7 +232,7 @@ struct AppTranslation {
             "close": "Cerrar"
         ],
         "it": [
-            "settings": "Impostazioni", "dashboard": "Dashboard", "language": "Lingua", "theme": "Tema", "chart_style": "Stile grafico", "chart_style_neon": "Neon", "chart_style_linear": "Lineare", "chart_style_gauge": "Indicatore", "theme_system": "Sistema", "theme_light": "Chiaro", "theme_dark": "Scuro", "live_activities_title": "Attività dal vivo", "live_activities_desc": "Mostra il progresso.", "day_complete": "Giornata completata", "about": "Info", "now_label": "ORA", "wake_up_label": "Sveglia", "morning_prep": "Preparazione", "peak_focus": "Concentrazione", "caffeine_cutoff": "Limite caffeina", "afternoon_reset": "Reset del pomeriggio", "sunset_walk": "Tramonto", "idle_phase": "Riposo", "legend_morning_prep": "Energia e Luce", "legend_focus": "Lavoro profondo", "legend_caffeine": "Preparazione sonno", "legend_afternoon": "Energia stabile", "legend_sunset": "Relax visivo", "legend_idle": "Recupero",
+            "settings": "Impostazioni", "dashboard": "Dashboard", "language": "Lingua", "theme": "Tema", "app_icon": "Icona app", "app_icon_desc": "Sistema usa l’icona principale e lascia che iOS passi automaticamente tra le varianti chiara e scura. Chiaro e Scuro forzano un’icona fissa.", "app_icon_system": "Sistema", "app_icon_light": "Chiaro", "app_icon_dark": "Scuro", "chart_style": "Stile grafico", "chart_style_neon": "Neon", "chart_style_linear": "Lineare", "chart_style_gauge": "Indicatore", "theme_system": "Sistema", "theme_light": "Chiaro", "theme_dark": "Scuro", "live_activities_title": "Attività dal vivo", "live_activities_desc": "Mostra il progresso.", "day_complete": "Giornata completata", "about": "Info", "now_label": "ORA", "wake_up_label": "Sveglia", "morning_prep": "Preparazione", "peak_focus": "Concentrazione", "caffeine_cutoff": "Limite caffeina", "afternoon_reset": "Reset del pomeriggio", "sunset_walk": "Tramonto", "idle_phase": "Riposo", "legend_morning_prep": "Energia e Luce", "legend_focus": "Lavoro profondo", "legend_caffeine": "Preparazione sonno", "legend_afternoon": "Energia stabile", "legend_sunset": "Relax visivo", "legend_idle": "Recupero",
             "about_morning_prep_info": "Le prime 2 ore sono critiche. La luce naturale blocca la produzione di melatonina.",
             "about_focus_info": "Il cortisolo è ai massimi livelli. Usa questa finestra per i compiti che richiedono attenzione.",
             "about_caffeine_info": "L'adenosina si accumula. Smetti ora per permettere al fegato di processarla prima di dormire.",
