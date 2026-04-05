@@ -1,11 +1,42 @@
 import WidgetKit
 import SwiftUI
 
+enum WidgetDayPhase: String {
+    case morningPrep = "morning_prep"
+    case focus = "focus"
+    case caffeine = "caffeine"
+    case afternoon = "afternoon"
+    case sunset = "sunset"
+    case idle = "idle"
+
+    var icon: String {
+        switch self {
+        case .morningPrep: return "sunrise.fill"
+        case .focus: return "brain.head.profile"
+        case .caffeine: return "cup.and.saucer.fill"
+        case .afternoon: return "sun.max.trianglebadge.exclamationmark"
+        case .sunset: return "sunset.fill"
+        case .idle: return "moon.stars.fill"
+        }
+    }
+
+    var hexColor: String {
+        switch self {
+        case .morningPrep: return "#00FFFF"
+        case .focus: return "#FF9500"
+        case .caffeine: return "#A2845E"
+        case .afternoon: return "#2FBF71"
+        case .sunset: return "#5856D6"
+        case .idle: return "#AF52DE"
+        }
+    }
+}
+
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let wakeUpTime: Date
     let sunsetTime: Date
-    let phase: DayPhase
+    let phase: WidgetDayPhase
     let phaseEndTime: Date
     let progress: Double
 }
@@ -41,12 +72,12 @@ struct Provider: TimelineProvider {
         let sunsetTimestamp = sharedDefaults?.double(forKey: "sunsetTime") ?? 0
         let endTimestamp = sharedDefaults?.double(forKey: "currentPhaseEnd") ?? 0
         let progress = sharedDefaults?.double(forKey: "currentPhaseProgress") ?? 0
-        let phaseRaw = sharedDefaults?.string(forKey: "currentPhase") ?? DayPhase.morningPrep.rawValue
+        let phaseRaw = sharedDefaults?.string(forKey: "currentPhase") ?? WidgetDayPhase.morningPrep.rawValue
 
         let wake = wakeTimestamp > 0 ? Date(timeIntervalSince1970: wakeTimestamp) : Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: date) ?? date
         let sunset = sunsetTimestamp > 0 ? Date(timeIntervalSince1970: sunsetTimestamp) : Calendar.current.date(bySettingHour: 19, minute: 45, second: 0, of: date) ?? date
         let phaseEnd = endTimestamp > 0 ? Date(timeIntervalSince1970: endTimestamp) : date.addingTimeInterval(3600)
-        let phase = DayPhase(rawValue: phaseRaw) ?? .morningPrep
+        let phase = WidgetDayPhase(rawValue: phaseRaw) ?? .morningPrep
 
         return SimpleEntry(
             date: date,
@@ -141,7 +172,7 @@ private struct SmallGaugeWidget: View {
         Color(hexRGB: entry.phase.hexColor, fallback: .orange)
     }
 
-    private var widgetPhases: [(phase: DayPhase, start: Date, end: Date)] {
+    private var widgetPhases: [(phase: WidgetDayPhase, start: Date, end: Date)] {
         let wake = entry.wakeUpTime
         let morningEnd = wake.addingTimeInterval(2 * 3600)
         let focusEnd = morningEnd.addingTimeInterval(90 * 60)
@@ -242,7 +273,7 @@ private struct MediumRailWidget: View {
         Color(hexRGB: entry.phase.hexColor, fallback: .orange)
     }
 
-    private var widgetPhases: [(phase: DayPhase, start: Date, end: Date)] {
+    private var widgetPhases: [(phase: WidgetDayPhase, start: Date, end: Date)] {
         let wake = entry.wakeUpTime
         let morningEnd = wake.addingTimeInterval(2 * 3600)
         let focusEnd = morningEnd.addingTimeInterval(90 * 60)
@@ -265,7 +296,7 @@ private struct MediumRailWidget: View {
         let inset: CGFloat = 4
         let contentWidth = max(1, width - inset * 2)
         let baselineY: CGFloat = 28
-        let heights: [DayPhase: CGFloat] = [.morningPrep: 18, .focus: 28, .caffeine: 20, .afternoon: 14, .sunset: 12, .idle: 10]
+        let heights: [WidgetDayPhase: CGFloat] = [.morningPrep: 18, .focus: 28, .caffeine: 20, .afternoon: 14, .sunset: 12, .idle: 10]
 
         let segments = phases.map { item in
             let startRatio = CGFloat(item.start.timeIntervalSince(start) / total)
@@ -302,14 +333,14 @@ private struct MediumRailWidget: View {
 
 private struct WidgetGaugeSegment: Identifiable {
     let id = UUID()
-    let phase: DayPhase
+    let phase: WidgetDayPhase
     let startAngle: Angle
     let endAngle: Angle
 }
 
 private struct WidgetRailSegment: Identifiable {
     let id = UUID()
-    let phase: DayPhase
+    let phase: WidgetDayPhase
     let startX: CGFloat
     let endX: CGFloat
     let midX: CGFloat

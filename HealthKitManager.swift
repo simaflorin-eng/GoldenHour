@@ -22,6 +22,10 @@ class HealthKitManager: ObservableObject {
 
     private let healthStore = HKHealthStore()
     private let sharedDefaults = UserDefaults(suiteName: "group.com.florinsima.GoldenHour")
+    private let currentPhaseKey = "currentPhase"
+    private let currentPhaseEndKey = "currentPhaseEnd"
+    private let currentPhaseProgressKey = "currentPhaseProgress"
+    private let sunsetTimeKey = "sunsetTime"
     private let wakeUpRefreshKey = "lastWakeUpRefreshTimestamp"
     private let liveActivitiesEnabledKey = "liveActivitiesEnabled"
     private var timer: AnyCancellable?
@@ -179,6 +183,7 @@ class HealthKitManager: ObservableObject {
         
         let state = GoldenHourAttributes.ContentState(
             phaseName: AppTranslation.get(translationKey, lang: lang),
+            phaseKey: phase.rawValue,
             phaseIcon: phase.icon,
             phaseColor: phase.hexColor,
             endTime: endTime,
@@ -304,8 +309,26 @@ class HealthKitManager: ObservableObject {
             self.currentPhase = newPhase
         }
 
+        persistWidgetState(schedule: schedule)
         schedulePhaseTransition()
         updateLiveActivity()
+    }
+
+    private func persistWidgetState(schedule: DailySchedule) {
+        sharedDefaults?.set(wakeUpTime.timeIntervalSince1970, forKey: "wakeUpTime")
+        sharedDefaults?.set(schedule.sunsetEnd.timeIntervalSince1970, forKey: sunsetTimeKey)
+        sharedDefaults?.set(currentPhase.rawValue, forKey: currentPhaseKey)
+        sharedDefaults?.set(currentPhaseEndTime.timeIntervalSince1970, forKey: currentPhaseEndKey)
+
+        if let current = phases.first(where: { $0.phase == currentPhase }) {
+            let total = max(1, current.end.timeIntervalSince(current.start))
+            let progress = max(0, min(1.0, Date().timeIntervalSince(current.start) / total))
+            sharedDefaults?.set(progress, forKey: currentPhaseProgressKey)
+        } else {
+            sharedDefaults?.set(0.0, forKey: currentPhaseProgressKey)
+        }
+
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func schedulePhaseTransition() {

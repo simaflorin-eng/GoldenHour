@@ -25,11 +25,12 @@ struct GoldenHourLiveActivity: Widget {
                         progress: context.state.progress
                     )
                     .frame(width: 34, height: 34)
-                    .padding(.trailing, 8)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 14)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     LiveActivityRail(
-                        phaseIcon: context.state.phaseIcon,
+                        phaseKey: context.state.phaseKey,
                         color: activeColor(for: context),
                         progress: context.state.progress
                     )
@@ -38,12 +39,16 @@ struct GoldenHourLiveActivity: Widget {
             } compactLeading: {
                 Image(systemName: context.state.phaseIcon)
                     .foregroundStyle(activeColor(for: context))
+                    .padding(.leading, 8)
+                    .padding(.trailing, 10)
             } compactTrailing: {
                 MiniIslandGauge(
                     color: activeColor(for: context),
                     progress: context.state.progress
                 )
                 .frame(width: 18, height: 18)
+                .padding(.leading, 10)
+                .padding(.trailing, 8)
             } minimal: {
                 Image(systemName: context.state.phaseIcon)
                     .foregroundStyle(activeColor(for: context))
@@ -78,7 +83,7 @@ private struct LockScreenLiveActivityView: View {
             }
 
             LiveActivityRail(
-                phaseIcon: context.state.phaseIcon,
+                phaseKey: context.state.phaseKey,
                 color: activeColor,
                 progress: context.state.progress
             )
@@ -92,7 +97,7 @@ private struct LockScreenLiveActivityView: View {
 }
 
 private struct LiveActivityRail: View {
-    let phaseIcon: String
+    let phaseKey: String
     let color: Color
     let progress: Double
 
@@ -101,7 +106,7 @@ private struct LiveActivityRail: View {
             let baselineY = geo.size.height / 2 + 4
             let segmentWidths = normalizedWidths(total: geo.size.width)
             let heights: [CGFloat] = [18, 30, 22, 16, 12]
-            let markerX = max(8, min(geo.size.width - 8, geo.size.width * progress))
+            let markerX = markerPosition(for: segmentWidths)
 
             ZStack {
                 Capsule(style: .continuous)
@@ -128,11 +133,12 @@ private struct LiveActivityRail: View {
     }
 
     private var activeSegmentIndex: Int {
-        switch progress {
-        case ..<0.22: return 0
-        case ..<0.42: return 1
-        case ..<0.66: return 2
-        case ..<0.88: return 3
+        switch phaseKey {
+        case "morning_prep": return 0
+        case "focus": return 1
+        case "caffeine": return 2
+        case "afternoon": return 3
+        case "sunset": return 4
         default: return 4
         }
     }
@@ -142,6 +148,16 @@ private struct LiveActivityRail: View {
         let values: [CGFloat] = [0.22, 0.2, 0.24, 0.22, 0.12]
         let available = total - (spacing * 4)
         return values.map { max(18, available * $0) }
+    }
+
+    private func markerPosition(for widths: [CGFloat]) -> CGFloat {
+        let spacing: CGFloat = 6
+        let clampedProgress = max(0, min(1, progress))
+        let leadingWidth = widths.prefix(activeSegmentIndex).reduce(0, +)
+        let leadingSpacing = CGFloat(activeSegmentIndex) * spacing
+        let segmentStart = leadingWidth + leadingSpacing
+        let segmentWidth = widths[activeSegmentIndex]
+        return segmentStart + (segmentWidth * clampedProgress)
     }
 }
 

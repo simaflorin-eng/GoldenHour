@@ -266,47 +266,53 @@ struct LinearTimelineProgressView: View {
     var body: some View {
         VStack(spacing: 16) {
             GeometryReader { geo in
-                let metrics = timelineMetrics(width: geo.size.width)
+                let metrics = railMetrics(width: geo.size.width)
 
                 ZStack {
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(Color.primary.opacity(0.05))
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.primary.opacity(0.035))
 
-                    Path { path in
-                        guard let first = metrics.points.first else { return }
-                        path.move(to: first)
-
-                        guard metrics.points.count > 1 else { return }
-                        for index in 1..<metrics.points.count {
-                            let previous = metrics.points[index - 1]
-                            let current = metrics.points[index]
-                            let midX = (previous.x + current.x) / 2
-                            let control1 = CGPoint(x: midX, y: previous.y)
-                            let control2 = CGPoint(x: midX, y: current.y)
-                            path.addCurve(to: current, control1: control1, control2: control2)
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            ForEach(0..<7, id: \.self) { _ in
+                                Rectangle()
+                                    .fill(Color.primary.opacity(0.05))
+                                    .frame(height: 1)
+                                Spacer(minLength: 0)
+                            }
                         }
+                        Spacer()
                     }
-                    .stroke(
-                        LinearGradient(
-                            colors: metrics.gradientColors,
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
-                    )
+                    .padding(.horizontal, 12)
+                    .padding(.top, 18)
+
+                    Capsule(style: .continuous)
+                        .fill(Color.primary.opacity(0.06))
+                        .frame(height: 6)
+                        .padding(.horizontal, 10)
+                        .position(x: geo.size.width / 2, y: metrics.baselineY)
+
+                    ForEach(Array(metrics.segments.enumerated()), id: \.offset) { _, segment in
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(segment.phase == healthManager.currentPhase ? activeColor : Color.primary.opacity(0.16))
+                            .frame(width: max(10, segment.width), height: segment.height)
+                            .position(x: segment.midX, y: metrics.baselineY)
+                    }
 
                     Path { path in
-                        path.move(to: CGPoint(x: metrics.markerPoint.x, y: geo.size.height - 10))
-                        path.addLine(to: metrics.markerPoint)
+                        path.move(to: CGPoint(x: metrics.markerX, y: geo.size.height - 8))
+                        path.addLine(to: CGPoint(x: metrics.markerX, y: metrics.baselineY - metrics.activeHeight - 12))
                     }
-                    .stroke(activeColor.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                    .stroke(Color.primary.opacity(0.32), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
 
-                    Circle()
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(activeColor)
-                        .frame(width: 12, height: 12)
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                        .shadow(color: activeColor.opacity(0.35), radius: 8)
-                        .position(metrics.markerPoint)
+                        .frame(width: 8, height: metrics.activeHeight + 18)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(Color.white.opacity(0.45), lineWidth: 0.8)
+                        )
+                        .position(x: metrics.markerX, y: metrics.baselineY)
                 }
             }
             .frame(height: 88)
@@ -362,69 +368,49 @@ struct LinearTimelineProgressView: View {
         healthManager.currentPhase == .idle ? nil : healthManager.currentPhaseEndTime
     }
 
-    private func timelineMetrics(width: CGFloat) -> (points: [CGPoint], markerPoint: CGPoint, gradientColors: [Color]) {
+    private func railMetrics(width: CGFloat) -> (segments: [RailSegment], markerX: CGFloat, baselineY: CGFloat, activeHeight: CGFloat) {
         let phases = healthManager.phases
             .filter { $0.phase.appearsInPrimaryCharts }
         guard let start = phases.first?.start, let end = phases.last?.end else {
-            return ([], .zero, [activeColor, activeColor])
+            return ([], 0, 48, 20)
         }
 
         let total = max(1, end.timeIntervalSince(start))
-        let height: CGFloat = 88
-        let baseline = height * 0.72
-        let amplitudes: [DayPhase: CGFloat] = [
-            .morningPrep: height * 0.24,
-            .focus: height * 0.54,
-            .caffeine: height * 0.32,
-            .afternoon: height * 0.2,
-            .sunset: height * 0.14,
-            .idle: height * 0.08
+        let horizontalInset: CGFloat = 10
+        let contentWidth = max(1, width - (horizontalInset * 2))
+        let baselineY: CGFloat = 46
+        let heights: [DayPhase: CGFloat] = [
+            .morningPrep: 26,
+            .focus: 42,
+            .caffeine: 30,
+            .afternoon: 20,
+            .sunset: 16,
+            .idle: 12
         ]
 
-        var points: [CGPoint] = []
-        var gradientColors: [Color] = []
-
-        for phase in phases {
+        let segments: [RailSegment] = phases.map { phase in
             let startRatio = CGFloat(max(0, min(1, phase.start.timeIntervalSince(start) / total)))
             let endRatio = CGFloat(max(0, min(1, phase.end.timeIntervalSince(start) / total)))
-            let startX = width * startRatio
-            let endX = width * endRatio
-            let amplitude = amplitudes[phase.phase] ?? height * 0.16
-            let color = color(for: phase.phase)
+            let startX = horizontalInset + (contentWidth * startRatio)
+            let endX = horizontalInset + (contentWidth * endRatio)
+            let height = heights[phase.phase] ?? 18
 
-            if points.isEmpty {
-                points.append(CGPoint(x: startX, y: baseline))
-            }
-
-            let midX = (startX + endX) / 2
-            points.append(CGPoint(x: midX, y: baseline - amplitude))
-            points.append(CGPoint(x: endX, y: baseline))
-            gradientColors.append(color)
+            return RailSegment(
+                phase: phase.phase,
+                startX: startX,
+                endX: endX,
+                midX: (startX + endX) / 2,
+                width: max(10, endX - startX),
+                height: height,
+                color: color(for: phase.phase)
+            )
         }
 
         let markerRatio = CGFloat(max(0, min(1, Date().timeIntervalSince(start) / total)))
-        let markerX = width * markerRatio
-        let markerY = interpolatedY(at: markerX, from: points, defaultY: baseline)
+        let markerX = horizontalInset + (contentWidth * markerRatio)
+        let activeHeight = segments.first(where: { markerX >= $0.startX && markerX <= $0.endX })?.height ?? 20
 
-        if gradientColors.count == 1, let only = gradientColors.first {
-            gradientColors.append(only)
-        }
-
-        return (points, CGPoint(x: markerX, y: markerY), gradientColors)
-    }
-
-    private func interpolatedY(at x: CGFloat, from points: [CGPoint], defaultY: CGFloat) -> CGFloat {
-        guard points.count > 1 else { return defaultY }
-
-        for index in 0..<(points.count - 1) {
-            let a = points[index]
-            let b = points[index + 1]
-            guard x >= min(a.x, b.x), x <= max(a.x, b.x), a.x != b.x else { continue }
-            let progress = (x - a.x) / (b.x - a.x)
-            return a.y + ((b.y - a.y) * progress)
-        }
-
-        return points.last?.y ?? defaultY
+        return (segments, markerX, baselineY, activeHeight)
     }
 
     private func color(for phase: DayPhase) -> Color {
@@ -442,6 +428,15 @@ struct LinearTimelineProgressView: View {
         }
     }
 
+    private struct RailSegment {
+        let phase: DayPhase
+        let startX: CGFloat
+        let endX: CGFloat
+        let midX: CGFloat
+        let width: CGFloat
+        let height: CGFloat
+        let color: Color
+    }
 }
 
 struct PhaseGaugeView: View {
@@ -469,7 +464,7 @@ struct PhaseGaugeView: View {
 
                     Path { path in
                         path.move(to: center)
-                        path.addLine(to: point(on: radius - 8, angle: metrics.needleAngle, center: center))
+                        path.addLine(to: point(on: radius - 22, angle: metrics.needleAngle, center: center))
                     }
                     .stroke(
                         LinearGradient(
@@ -653,12 +648,19 @@ struct NeonSegment: View {
     let width: CGFloat
     let isActive: Bool
     let progress: Double
+
+    private var fillWidth: CGFloat {
+        let rawWidth = width * progress
+        if progress <= 0 { return 0 }
+        return min(width, max(14, rawWidth))
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 7).fill(color.opacity(0.12)).frame(width: max(2, width), height: 14)
-            RoundedRectangle(cornerRadius: 7).fill(color.opacity(isActive ? 1.0 : 0.4)).frame(width: max(0, width * progress), height: 14)
+            RoundedRectangle(cornerRadius: 7).fill(color.opacity(isActive ? 1.0 : 0.4)).frame(width: fillWidth, height: 14)
             if isActive {
-                RoundedRectangle(cornerRadius: 7).fill(color).frame(width: max(0, width * progress), height: 14).shadow(color: color.opacity(0.8), radius: 5).blur(radius: 1)
+                RoundedRectangle(cornerRadius: 7).fill(color).frame(width: fillWidth, height: 14).shadow(color: color.opacity(0.8), radius: 5).blur(radius: 1)
             }
         }
         .frame(height: 18)

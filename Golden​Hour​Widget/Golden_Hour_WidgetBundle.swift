@@ -12,7 +12,6 @@ struct Golden_Hour_WidgetBundle: WidgetBundle {
         
         #if canImport(ActivityKit)
         GoldenHourLiveActivity()
-        GoldenHourDetailedLiveActivity()
         #endif
         
         controlWidgets

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @ObservedObject var healthManager: HealthKitManager
-    @StateObject private var locationManager = LocationManager()
+    @ObservedObject var locationManager: LocationManager
     @State private var didConfigureManagers = false
     @AppStorage("appLanguage") private var appLanguage: String = "en"
     
@@ -23,7 +23,6 @@ struct MainTabView: View {
             didConfigureManagers = true
 
             healthManager.connectLocationManager(locationManager)
-            locationManager.requestLocation()
         }
     }
 }
