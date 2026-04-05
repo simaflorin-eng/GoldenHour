@@ -9,28 +9,35 @@ import XCTest
 @testable import GoldenHour
 
 final class GoldenHourTests: XCTestCase {
+    @MainActor
+    func testDailyScheduleKeepsAfternoonUntilThirtyMinutesBeforeSunset() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        let wake = calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 7, minute: 49))!
+        let sunset = calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 19, minute: 49))!
+
+        let schedule = HealthKitManager.makeDailySchedule(wake: wake, sunset: sunset)
+
+        XCTAssertEqual(schedule.caffeineCutoff, calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 15, minute: 49))!)
+        XCTAssertEqual(schedule.afternoonStart, schedule.caffeineCutoff)
+        XCTAssertEqual(schedule.afternoonEnd, calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 19, minute: 19))!)
+        XCTAssertEqual(schedule.sunsetStart, schedule.afternoonEnd)
+        XCTAssertEqual(schedule.sunsetEnd, sunset)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+    @MainActor
+    func testDailyScheduleCollapsesAfternoonWhenCaffeineCutoffIsInsideSunsetWindow() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
+        let wake = calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 11, minute: 49))!
+        let sunset = calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 19, minute: 49))!
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+        let schedule = HealthKitManager.makeDailySchedule(wake: wake, sunset: sunset)
 
+        XCTAssertEqual(schedule.caffeineCutoff, calendar.date(from: DateComponents(year: 2026, month: 3, day: 18, hour: 19, minute: 49))!)
+        XCTAssertEqual(schedule.afternoonStart, schedule.afternoonEnd)
+        XCTAssertEqual(schedule.sunsetStart, schedule.sunsetEnd)
+    }
 }

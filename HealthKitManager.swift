@@ -8,6 +8,18 @@ import ActivityKit
 
 @MainActor
 class HealthKitManager: ObservableObject {
+    struct DailySchedule {
+        let wake: Date
+        let morningPrepEnd: Date
+        let focusStart: Date
+        let focusEnd: Date
+        let caffeineCutoff: Date
+        let afternoonStart: Date
+        let afternoonEnd: Date
+        let sunsetStart: Date
+        let sunsetEnd: Date
+    }
+
     private let healthStore = HKHealthStore()
     private let sharedDefaults = UserDefaults(suiteName: "group.com.florinsima.GoldenHour")
     private let wakeUpRefreshKey = "lastWakeUpRefreshTimestamp"
@@ -26,19 +38,46 @@ class HealthKitManager: ObservableObject {
     // MARK: - Proprietăți UI
     
     var now: Date { Date() }
-    var morningPrepEnd: Date { wakeUpTime.addingTimeInterval(2 * 3600) }
+    static func makeDailySchedule(wake: Date, sunset: Date) -> DailySchedule {
+        let morningPrepEnd = wake.addingTimeInterval(2 * 3600)
+        let focusStart = morningPrepEnd
+        let focusEnd = focusStart.addingTimeInterval(90 * 60)
+        let caffeineCutoff = wake.addingTimeInterval(8 * 3600)
+        let afternoonStart = caffeineCutoff
+        let sunsetEnd = sunset
+        let sunsetStart = max(caffeineCutoff, sunsetEnd.addingTimeInterval(-30 * 60))
+        let afternoonEnd = max(afternoonStart, sunsetStart)
+
+        return DailySchedule(
+            wake: wake,
+            morningPrepEnd: morningPrepEnd,
+            focusStart: focusStart,
+            focusEnd: focusEnd,
+            caffeineCutoff: caffeineCutoff,
+            afternoonStart: afternoonStart,
+            afternoonEnd: afternoonEnd,
+            sunsetStart: sunsetStart,
+            sunsetEnd: sunsetEnd
+        )
+    }
+
+    private var dailySchedule: DailySchedule {
+        Self.makeDailySchedule(wake: wakeUpTime, sunset: effectiveSunset)
+    }
+
+    var morningPrepEnd: Date { dailySchedule.morningPrepEnd }
     
-    var peakFocusStart: Date { morningPrepEnd }
-    var peakFocusEnd: Date { peakFocusStart.addingTimeInterval(90 * 60) }
+    var peakFocusStart: Date { dailySchedule.focusStart }
+    var peakFocusEnd: Date { dailySchedule.focusEnd }
     
     var peakFocusInterval: String {
         "\(peakFocusStart.formatted(date: .omitted, time: .shortened)) - \(peakFocusEnd.formatted(date: .omitted, time: .shortened))"
     }
     
-    var caffeineCutoffDate: Date { wakeUpTime.addingTimeInterval(8 * 3600) }
+    var caffeineCutoffDate: Date { dailySchedule.caffeineCutoff }
     var caffeineCutoff: String { caffeineCutoffDate.formatted(date: .omitted, time: .shortened) }
-    var afternoonStart: Date { caffeineCutoffDate }
-    var afternoonEnd: Date { max(caffeineCutoffDate, effectiveSunset.addingTimeInterval(-30 * 60)) }
+    var afternoonStart: Date { dailySchedule.afternoonStart }
+    var afternoonEnd: Date { dailySchedule.afternoonEnd }
     var afternoonInterval: String {
         "\(afternoonStart.formatted(date: .omitted, time: .shortened)) - \(afternoonEnd.formatted(date: .omitted, time: .shortened))"
     }
@@ -247,24 +286,15 @@ class HealthKitManager: ObservableObject {
     }
     
     func updatePhases() {
-        let wake = wakeUpTime
-        let sunset = effectiveSunset
-
-        // Huberman: delay caffeine ~90-120 min after waking, then use a 90-minute
-        // ultradian work bout in the 2-4 hour post-waking window.
-        let morningPrepEnd = self.morningPrepEnd
-        let focusEnd = self.peakFocusEnd
-        let caffeineCutoffEnd = self.caffeineCutoffDate
-        let sunsetStart = self.afternoonEnd
-        let sunsetEnd = max(sunsetStart, sunset)
+        let schedule = dailySchedule
         
         self.phases = [
-            (.morningPrep, wake, morningPrepEnd),
-            (.focus, morningPrepEnd, focusEnd),
-            (.caffeine, focusEnd, caffeineCutoffEnd),
-            (.afternoon, caffeineCutoffEnd, sunsetStart),
-            (.sunset, sunsetStart, sunsetEnd),
-            (.idle, sunsetEnd, wake.addingTimeInterval(24 * 3600))
+            (.morningPrep, schedule.wake, schedule.morningPrepEnd),
+            (.focus, schedule.focusStart, schedule.focusEnd),
+            (.caffeine, schedule.focusEnd, schedule.caffeineCutoff),
+            (.afternoon, schedule.afternoonStart, schedule.afternoonEnd),
+            (.sunset, schedule.sunsetStart, schedule.sunsetEnd),
+            (.idle, schedule.sunsetEnd, schedule.wake.addingTimeInterval(24 * 3600))
         ]
         
         let now = Date()
