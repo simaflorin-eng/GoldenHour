@@ -39,6 +39,7 @@ struct SimpleEntry: TimelineEntry {
     let phase: WidgetDayPhase
     let phaseEndTime: Date
     let progress: Double
+    let language: String
 }
 
 struct Provider: TimelineProvider {
@@ -52,7 +53,8 @@ struct Provider: TimelineProvider {
             sunsetTime: Calendar.current.date(bySettingHour: 19, minute: 45, second: 0, of: now) ?? now,
             phase: .focus,
             phaseEndTime: now.addingTimeInterval(3600),
-            progress: 0.5
+            progress: 0.5,
+            language: "en"
         )
     }
 
@@ -73,6 +75,7 @@ struct Provider: TimelineProvider {
         let endTimestamp = sharedDefaults?.double(forKey: "currentPhaseEnd") ?? 0
         let progress = sharedDefaults?.double(forKey: "currentPhaseProgress") ?? 0
         let phaseRaw = sharedDefaults?.string(forKey: "currentPhase") ?? WidgetDayPhase.morningPrep.rawValue
+        let language = sharedDefaults?.string(forKey: "appLanguage") ?? "en"
 
         let wake = wakeTimestamp > 0 ? Date(timeIntervalSince1970: wakeTimestamp) : Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: date) ?? date
         let sunset = sunsetTimestamp > 0 ? Date(timeIntervalSince1970: sunsetTimestamp) : Calendar.current.date(bySettingHour: 19, minute: 45, second: 0, of: date) ?? date
@@ -85,7 +88,8 @@ struct Provider: TimelineProvider {
             sunsetTime: sunset,
             phase: phase,
             phaseEndTime: phaseEnd,
-            progress: progress
+            progress: progress,
+            language: language
         )
     }
 }
@@ -161,7 +165,7 @@ private struct SmallGaugeWidget: View {
             }
             .frame(height: 70)
 
-            Text(entry.phase.rawValue.replacingOccurrences(of: "_", with: " ").uppercased())
+            Text(widgetPhaseTitle(entry.phase, language: entry.language).uppercased())
                 .font(.system(size: 10, weight: .black))
                 .foregroundStyle(.secondary)
         }
@@ -224,7 +228,7 @@ private struct MediumRailWidget: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(entry.phase.rawValue.replacingOccurrences(of: "_", with: " ").uppercased())
+                    Text(widgetPhaseTitle(entry.phase, language: entry.language).uppercased())
                         .font(.system(size: 10, weight: .black))
                         .foregroundStyle(.secondary)
                     Text(entry.phaseEndTime, style: .timer)
@@ -370,4 +374,67 @@ private func widgetPoint(on radius: CGFloat, angle: Angle, center: CGPoint) -> C
         x: center.x + (cos(CGFloat(angle.radians)) * radius),
         y: center.y + (sin(CGFloat(angle.radians)) * radius)
     )
+}
+
+private func widgetPhaseTitle(_ phase: WidgetDayPhase, language: String) -> String {
+    switch normalizedLanguage(language) {
+    case "ro":
+        switch phase {
+        case .morningPrep: return "Pregătire de dimineață"
+        case .focus: return "Maxim de concentrare"
+        case .caffeine: return "Limita de cofeină"
+        case .afternoon: return "Reset de după-amiază"
+        case .sunset: return "Plimbare la apus"
+        case .idle: return "Zi completă"
+        }
+    case "fr":
+        switch phase {
+        case .morningPrep: return "Preparation"
+        case .focus: return "Concentration"
+        case .caffeine: return "Limite cafeine"
+        case .afternoon: return "Reset Apres-Midi"
+        case .sunset: return "Coucher de soleil"
+        case .idle: return "Jour Termine"
+        }
+    case "de":
+        switch phase {
+        case .morningPrep: return "Morgenstart"
+        case .focus: return "Fokuszeit"
+        case .caffeine: return "Koffein Stopp"
+        case .afternoon: return "Nachmittagsreset"
+        case .sunset: return "Abendlicht"
+        case .idle: return "Tag Beendet"
+        }
+    case "es":
+        switch phase {
+        case .morningPrep: return "Preparacion"
+        case .focus: return "Enfoque"
+        case .caffeine: return "Limite de cafeina"
+        case .afternoon: return "Reinicio de la tarde"
+        case .sunset: return "Paseo al atardecer"
+        case .idle: return "Dia completado"
+        }
+    case "it":
+        switch phase {
+        case .morningPrep: return "Preparazione"
+        case .focus: return "Concentrazione"
+        case .caffeine: return "Limite caffeina"
+        case .afternoon: return "Reset del pomeriggio"
+        case .sunset: return "Passeggiata Tramonto"
+        case .idle: return "Giornata Completa"
+        }
+    default:
+        switch phase {
+        case .morningPrep: return "Morning Prep"
+        case .focus: return "Peak Focus"
+        case .caffeine: return "Coffee Cutoff"
+        case .afternoon: return "Afternoon Reset"
+        case .sunset: return "Sunset Walk"
+        case .idle: return "Day Complete"
+        }
+    }
+}
+
+private func normalizedLanguage(_ language: String) -> String {
+    language.split(separator: "-").first.map(String.init) ?? language
 }
