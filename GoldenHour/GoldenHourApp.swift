@@ -56,8 +56,7 @@ struct GoldenHourApp: App {
 
     var selectedColorScheme: ColorScheme? {
         switch appTheme {
-        case 1: return .light
-        case 2: return .dark
+        case 1, 2: return .dark
         default: return nil
         }
     }

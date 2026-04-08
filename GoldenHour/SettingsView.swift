@@ -65,7 +65,6 @@ struct SettingsView: View {
                     Section(header: Text(AppTranslation.get("theme", lang: appLanguage))) {
                         Picker(AppTranslation.get("theme", lang: appLanguage), selection: $appTheme) {
                             Text(AppTranslation.get("theme_system", lang: appLanguage)).tag(0)
-                            Text(AppTranslation.get("theme_light", lang: appLanguage)).tag(1)
                             Text(AppTranslation.get("theme_dark", lang: appLanguage)).tag(2)
                         }
                         .pickerStyle(.segmented)
