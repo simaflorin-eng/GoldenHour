@@ -17,11 +17,12 @@ struct GoldenHourApp: App {
             MainTabView(healthManager: healthManager, locationManager: locationManager)
                 .preferredColorScheme(selectedColorScheme)
                 .task {
-                    syncWidgetLanguage()
+                    syncSharedLanguageState()
                     await requestInitialPermissionsIfNeeded()
                 }
                 .onChange(of: appLanguage) { _, _ in
-                    syncWidgetLanguage()
+                    syncSharedLanguageState()
+                    healthManager.updateLiveActivity()
                 }
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     if newPhase == .active {
@@ -32,7 +33,7 @@ struct GoldenHourApp: App {
     }
 
     private func handleActiveScene() {
-        syncWidgetLanguage()
+        syncSharedLanguageState()
         if didRequestInitialPermissions {
             healthManager.refresh()
             locationManager.requestLocation()
@@ -48,7 +49,7 @@ struct GoldenHourApp: App {
         locationManager.requestLocation()
     }
 
-    private func syncWidgetLanguage() {
+    private func syncSharedLanguageState() {
         sharedDefaults?.set(appLanguage, forKey: "appLanguage")
         WidgetCenter.shared.reloadAllTimelines()
     }

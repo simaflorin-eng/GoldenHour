@@ -145,7 +145,9 @@ class HealthKitManager: ObservableObject {
             return 
         }
 
-        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
+        let lang = sharedDefaults?.string(forKey: "appLanguage")
+            ?? UserDefaults.standard.string(forKey: "appLanguage")
+            ?? "en"
         let phase = currentPhase
         
         if phase == .idle {
