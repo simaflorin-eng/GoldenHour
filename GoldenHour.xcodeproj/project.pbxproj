@@ -628,6 +628,7 @@
 				INFOPLIST_FILE = GoldenHour/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Avem nevoie de acces pentru a​-ți organiza ziua.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour nu scrie date in Apple Health, dar iOS solicita aceasta descriere pentru accesul HealthKit.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Folosim locația pentru a calcula ora exactă a apusului și a-ți reseta melatonina.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -667,6 +668,7 @@
 				INFOPLIST_FILE = GoldenHour/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Avem nevoie de acces pentru a​-ți organiza ziua.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour nu scrie date in Apple Health, dar iOS solicita aceasta descriere pentru accesul HealthKit.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Folosim locația pentru a calcula ora exactă a apusului și a-ți reseta melatonina.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
