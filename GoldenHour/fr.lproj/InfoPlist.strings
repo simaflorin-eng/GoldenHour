@@ -1,0 +1,3 @@
+"NSHealthShareUsageDescription" = "Golden Hour utilise les données de sommeil d’Apple Health pour estimer votre heure de réveil et créer votre chronologie circadienne quotidienne.";
+"NSHealthUpdateUsageDescription" = "Golden Hour n’écrit aucune donnée dans Apple Health, mais iOS exige cette description pour l’accès à HealthKit.";
+"NSLocationWhenInUseUsageDescription" = "Golden Hour utilise votre position pour calculer l’heure locale du coucher du soleil dans votre chronologie circadienne quotidienne.";

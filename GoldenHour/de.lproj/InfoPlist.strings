@@ -1,0 +1,3 @@
+"NSHealthShareUsageDescription" = "Golden Hour verwendet Schlafdaten aus Apple Health, um deine Aufwachzeit zu schätzen und deine tägliche zirkadiane Zeitleiste zu erstellen.";
+"NSHealthUpdateUsageDescription" = "Golden Hour schreibt keine Daten in Apple Health, aber iOS verlangt diese Beschreibung für den HealthKit-Zugriff.";
+"NSLocationWhenInUseUsageDescription" = "Golden Hour verwendet deinen Standort, um die lokale Sonnenuntergangszeit für deine tägliche zirkadiane Zeitleiste zu berechnen.";

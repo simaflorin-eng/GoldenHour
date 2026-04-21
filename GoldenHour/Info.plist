@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-	<dict>
-		<key>UIBackgroundModes</key>
-		<array>
-			<string>location</string>
+		<dict>
+			<key>NSHealthShareUsageDescription</key>
+			<string>Golden Hour uses Apple Health sleep data to estimate your wake-up time and build your daily circadian timeline.</string>
+			<key>NSHealthUpdateUsageDescription</key>
+			<string>Golden Hour does not write data to Apple Health, but iOS requires this description for HealthKit access.</string>
+			<key>NSLocationWhenInUseUsageDescription</key>
+			<string>Golden Hour uses your location to calculate local sunset time for your daily circadian timeline.</string>
+			<key>UIBackgroundModes</key>
+			<array>
+				<string>location</string>
 		<string>remote-notification</string>
 	</array>
 </dict>
