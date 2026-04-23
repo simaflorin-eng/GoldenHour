@@ -10,7 +10,6 @@
 			<string>Golden Hour uses your location to calculate local sunset time for your daily circadian timeline.</string>
 			<key>UIBackgroundModes</key>
 			<array>
-				<string>location</string>
 		<string>remote-notification</string>
 	</array>
 </dict>
