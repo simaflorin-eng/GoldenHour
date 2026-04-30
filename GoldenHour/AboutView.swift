@@ -112,6 +112,12 @@ struct AboutView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .padding(.bottom, 5)
+
+                    Text(AppTranslation.get("science_disclaimer", lang: appLanguage))
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .padding(14)
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     
                     hubermanPoint(title: "huberman_morning_light_t", description: "huberman_morning_light_d", icon: "sun.max.fill", color: .yellow)
                     hubermanPoint(title: "huberman_delay_caffeine_t", description: "huberman_delay_caffeine_d", icon: "timer", color: .orange)
@@ -121,8 +127,8 @@ struct AboutView: View {
                 }
                 .padding(24)
             }
-            .navigationTitle(AppTranslation.get("huberman_title", lang: appLanguage))
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle(AppTranslation.get("science_header", lang: appLanguage))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(AppTranslation.get("close", lang: appLanguage)) {
