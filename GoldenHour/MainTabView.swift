@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import UIKit
 
 struct MainTabView: View {
     @ObservedObject var healthManager: HealthKitManager
@@ -15,6 +16,7 @@ struct MainTabView: View {
     private let reviewPromptStartCount = 8
     private let reviewPromptRepeatInterval = 12
     private let reviewPromptCooldown: TimeInterval = 60 * 60 * 24 * 45
+    private let appStoreReviewURL = URL(string: "itms-apps://itunes.apple.com/app/id6762508692?action=write-review")
     
     var body: some View {
         TabView {
@@ -41,7 +43,7 @@ struct MainTabView: View {
         ) {
             Button(AppTranslation.get("review_prompt_cta", lang: appLanguage)) {
                 reviewPromptCompleted = true
-                requestReview()
+                openReviewPage()
             }
 
             Button(AppTranslation.get("review_prompt_later", lang: appLanguage), role: .cancel) {}
@@ -72,5 +74,14 @@ struct MainTabView: View {
 
         let elapsed = now.timeIntervalSince1970 - reviewPromptLastShownAt
         return elapsed >= reviewPromptCooldown
+    }
+
+    private func openReviewPage() {
+        guard let appStoreReviewURL, UIApplication.shared.canOpenURL(appStoreReviewURL) else {
+            requestReview()
+            return
+        }
+
+        UIApplication.shared.open(appStoreReviewURL)
     }
 }

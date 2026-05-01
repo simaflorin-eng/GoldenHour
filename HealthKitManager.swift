@@ -98,10 +98,10 @@ class HealthKitManager: ObservableObject {
     
     // MARK: - Refresh Logic
     
-    func refresh() {
+    func refresh(forceWakeUpFetch: Bool = false) {
         updatePhases()
 
-        guard shouldRefreshWakeUpTime() else { return }
+        guard forceWakeUpFetch || shouldRefreshWakeUpTime() else { return }
 
         Task(priority: .userInitiated) {
             await fetchWakeUpTime()

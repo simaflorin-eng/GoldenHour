@@ -35,7 +35,7 @@ struct GoldenHourApp: App {
     private func handleActiveScene() {
         syncSharedLanguageState()
         if didRequestInitialPermissions {
-            healthManager.refresh()
+            healthManager.refresh(forceWakeUpFetch: true)
             locationManager.requestLocation()
         }
     }
