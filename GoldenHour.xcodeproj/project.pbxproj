@@ -626,15 +626,16 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = GoldenHour/GoldenHour.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 62QUMB3PNM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GoldenHour/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Golden Hour";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Avem nevoie de acces pentru a​-ți organiza ziua.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour nu scrie date in Apple Health, dar iOS solicita aceasta descriere pentru accesul HealthKit.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Folosim locația pentru a calcula ora exactă a apusului și a-ți reseta melatonina.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Golden Hour uses Apple Health sleep data to estimate your wake-up time and build your daily circadian timeline.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour does not write data to Apple Health, but iOS requires this description for HealthKit access.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Golden Hour uses your location to calculate local sunset time for your daily circadian timeline.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -646,7 +647,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.florinsima.GoldenHour;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -666,15 +667,16 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = GoldenHour/GoldenHour.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 62QUMB3PNM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GoldenHour/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Golden Hour";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Avem nevoie de acces pentru a​-ți organiza ziua.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour nu scrie date in Apple Health, dar iOS solicita aceasta descriere pentru accesul HealthKit.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Folosim locația pentru a calcula ora exactă a apusului și a-ți reseta melatonina.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Golden Hour uses Apple Health sleep data to estimate your wake-up time and build your daily circadian timeline.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Golden Hour does not write data to Apple Health, but iOS requires this description for HealthKit access.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Golden Hour uses your location to calculate local sunset time for your daily circadian timeline.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -686,7 +688,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.florinsima.GoldenHour;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
