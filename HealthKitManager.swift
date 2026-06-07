@@ -137,6 +137,13 @@ class HealthKitManager: ObservableObject {
     func updateLiveActivity() {
         #if canImport(ActivityKit)
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+
+        let hasPro = sharedDefaults?.bool(forKey: "proUnlocked")
+            ?? UserDefaults.standard.bool(forKey: "proUnlocked")
+        guard hasPro else {
+            stopAllActivities()
+            return
+        }
         
         let defaults = UserDefaults.standard
         let isEnabled = defaults.object(forKey: liveActivitiesEnabledKey) as? Bool ?? true

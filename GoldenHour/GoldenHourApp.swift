@@ -7,6 +7,7 @@ struct GoldenHourApp: App {
     @AppStorage("appTheme") private var appTheme: Int = 0
     @StateObject private var healthManager = HealthKitManager()
     @StateObject private var locationManager = LocationManager()
+    @StateObject private var proStore = ProStore()
     @State private var didRequestInitialPermissions = false
     private let sharedDefaults = UserDefaults(suiteName: "group.com.florinsima.GoldenHour")
 
@@ -14,7 +15,10 @@ struct GoldenHourApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView(healthManager: healthManager, locationManager: locationManager)
+            GHRootView()
+                .environmentObject(healthManager)
+                .environmentObject(locationManager)
+                .environmentObject(proStore)
                 .preferredColorScheme(selectedColorScheme)
                 .task {
                     syncSharedLanguageState()
@@ -56,7 +60,7 @@ struct GoldenHourApp: App {
 
     var selectedColorScheme: ColorScheme? {
         switch appTheme {
-        case 1, 2: return .dark
+        case 2: return .dark
         default: return nil
         }
     }

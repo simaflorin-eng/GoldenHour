@@ -40,6 +40,7 @@ struct SimpleEntry: TimelineEntry {
     let phaseEndTime: Date
     let progress: Double
     let language: String
+    let isProUnlocked: Bool
 }
 
 struct Provider: TimelineProvider {
@@ -54,7 +55,8 @@ struct Provider: TimelineProvider {
             phase: .focus,
             phaseEndTime: now.addingTimeInterval(3600),
             progress: 0.5,
-            language: "en"
+            language: "en",
+            isProUnlocked: false
         )
     }
 
@@ -76,6 +78,7 @@ struct Provider: TimelineProvider {
         let progress = sharedDefaults?.double(forKey: "currentPhaseProgress") ?? 0
         let phaseRaw = sharedDefaults?.string(forKey: "currentPhase") ?? WidgetDayPhase.morningPrep.rawValue
         let language = sharedDefaults?.string(forKey: "appLanguage") ?? "en"
+        let isProUnlocked = sharedDefaults?.bool(forKey: "proUnlocked") ?? false
 
         let wake = wakeTimestamp > 0 ? Date(timeIntervalSince1970: wakeTimestamp) : Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: date) ?? date
         let sunset = sunsetTimestamp > 0 ? Date(timeIntervalSince1970: sunsetTimestamp) : Calendar.current.date(bySettingHour: 19, minute: 45, second: 0, of: date) ?? date
@@ -89,7 +92,8 @@ struct Provider: TimelineProvider {
             phase: phase,
             phaseEndTime: phaseEnd,
             progress: progress,
-            language: language
+            language: language,
+            isProUnlocked: isProUnlocked
         )
     }
 }
@@ -99,12 +103,47 @@ struct Golden_Hour_WidgetEntryView: View {
     var entry: Provider.Entry
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            SmallGaugeWidget(entry: entry)
-        default:
-            MediumRailWidget(entry: entry)
+        if entry.isProUnlocked {
+            switch family {
+            case .systemSmall:
+                SmallGaugeWidget(entry: entry)
+            default:
+                MediumRailWidget(entry: entry)
+            }
+        } else {
+            LockedProWidget(language: entry.language)
         }
+    }
+}
+
+private struct LockedProWidget: View {
+    let language: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Color(hexRGB: "#F2B333", fallback: .orange))
+                Spacer()
+                Text("PRO")
+                    .font(.system(size: 10, weight: .black, design: .rounded))
+                    .foregroundStyle(Color(hexRGB: "#F2B333", fallback: .orange))
+            }
+
+            Spacer(minLength: 4)
+
+            Text(widgetTranslation("pro_title", language: language))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+
+            Text(widgetTranslation("pro_widget_locked_detail", language: language))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .padding(14)
     }
 }
 
@@ -374,6 +413,19 @@ private func widgetPoint(on radius: CGFloat, angle: Angle, center: CGPoint) -> C
         x: center.x + (cos(CGFloat(angle.radians)) * radius),
         y: center.y + (sin(CGFloat(angle.radians)) * radius)
     )
+}
+
+private func widgetTranslation(_ key: String, language: String) -> String {
+    let languageCode = normalizedLanguage(language)
+    let values: [String: [String: String]] = [
+        "ro": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Deblochează widgeturile în aplicație."],
+        "fr": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Debloquez les widgets dans l'app."],
+        "de": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Schalte Widgets in der App frei."],
+        "es": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Desbloquea los widgets en la app."],
+        "it": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Sblocca i widget nell'app."],
+        "en": ["pro_title": "Golden Hour Pro", "pro_widget_locked_detail": "Unlock widgets in the app."]
+    ]
+    return values[languageCode]?[key] ?? values["en"]?[key] ?? key
 }
 
 private func widgetPhaseTitle(_ phase: WidgetDayPhase, language: String) -> String {
